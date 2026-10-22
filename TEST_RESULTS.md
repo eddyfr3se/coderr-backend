@@ -16,7 +16,7 @@ The following checks were actually executed against the local setup:
 | Served frontend configuration | API_BASE_URL and STATIC_BASE_URL both pointed to port 8001. |
 | Browser start page at port 5501 | Coderr heading and navigation visible. Missing-data error visible because API features are not implemented. |
 | `git check-ignore` | Confirmed exclusion of .env, .venv, db.sqlite3 and both local planning files. |
-| `git remote -v` | No remote configured. |
+| `git remote -v` during setup | Initially no remote configured; origin was added later for the GitHub upload. |
 | Listening ports | KanMind still on 8000/5500; Coderr on 8001/5501. |
 
 HTTP checks used Python's standard-library urllib locally. The browser check

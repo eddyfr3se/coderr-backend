@@ -13,8 +13,11 @@
   by default. Individual public endpoints will be added explicitly later.
 - Applied Django's standard database migrations. No custom business models
   or demo users have been created.
-- Initialized local Git without a remote. No GitHub repository, commit or
-  push has been created during setup.
+- Initialized local Git and reviewed the 60 backend files before committing.
+- Saved the initial setup as commit 83cac18, "Set up Coderr Django backend".
+- Created the private repository https://github.com/eddyfr3se/coderr-backend,
+  configured origin and pushed main successfully. The separate frontend,
+  local planning files, database and private environment were not uploaded.
 - Downloaded the Academy frontend into a separate sibling directory.
   Frontend version: 1.2.1; source commit:
   31d1e195d639e8bce91f87c5b330b9d040ef5c46.

@@ -3,6 +3,14 @@
 ## Installation
 
 Requirements: Python 3.14 (used locally), pip and Git.
+Clone the backend first if you do not already have a local checkout
+(repository access is required while it is private):
+
+```bash
+git clone https://github.com/eddyfr3se/coderr-backend.git
+cd coderr-backend
+```
+
 Run these commands from the backend project directory on macOS or Linux:
 
 ```bash
