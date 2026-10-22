@@ -1,0 +1,15 @@
+/CODERR_20_TAGE_PLAN.md
+/CODERR_ANFORDERUNGEN_LOKAL.md
+/.venv/
+/.env
+/.env.*
+!/.env.example
+/AGENTS.md
+*.sqlite3
+*.sqlite3-journal
+__pycache__/
+*.py[cod]
+/media/
+.DS_Store
+/.idea/
+/.vscode/
