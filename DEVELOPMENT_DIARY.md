@@ -28,3 +28,24 @@
 
 API features, guest login, business permissions and frontend workflows still
 need implementation and testing. New concepts will be explained as they arise.
+
+## Day 3 – Routing and first automated tests, 23 October 2026
+
+- Reviewed central URL routing and the empty app-level API URL files.
+- Added three admin access checks in core/tests.py using APITestCase,
+  setUp, named URLs with reverse, DRF status constants and assertions.
+- Demonstrated an incorrect expectation: loading the admin login page returned
+  200 while the test deliberately expected 201. The first run had one failure
+  and two successful tests. Corrected the expectation and ran all tests again.
+  This was an assertion exercise, not a new feature implemented with TDD.
+- All three tests passed in the final run. Django used an in-memory test
+  database. A before/after SHA-256 comparison confirmed that the development
+  database file was unchanged during that run.
+- The staff test uses force_login to prepare a session. It does not test
+  passwords, the API login endpoint or token authentication.
+- Existing local formatting changes in core/settings.py were left unchanged.
+- Repeated the test command manually in the Antigravity terminal. The result
+  was three successful tests in 0.019 seconds; the terminal output was checked.
+
+No business endpoints or extra production routes were added. Token tests and
+business validation tests will follow when those endpoints are implemented.

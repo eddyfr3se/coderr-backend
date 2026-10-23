@@ -136,3 +136,15 @@ python -m pip check
 Setup checks and their actual results are recorded in
 [TEST_RESULTS.md](TEST_RESULTS.md). No API regression suite has been executed
 for Coderr, and no official Academy PM result is claimed.
+
+### Automated tests
+
+```bash
+python manage.py test
+```
+
+The first three tests in `core/tests.py` check admin routing and access:
+the login page is public, anonymous visitors are redirected to login,
+and an active staff user can open the admin index. Django creates a separate
+test database; the development server does not need to be running.
+The staff test uses a session login helper, not the future API token login.
