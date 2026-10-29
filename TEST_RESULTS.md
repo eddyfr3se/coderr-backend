@@ -53,3 +53,45 @@ customer/business permissions, frontend workflows or official PM results.
 The same three tests were also started manually in the Antigravity terminal
 with `.venv/bin/python manage.py test`. The visible result was
 `Ran 3 tests in 0.019s`, followed by `OK` and test database cleanup.
+
+## Day 4 – Profile creation in admin, 29 October 2026
+
+- Applied auth_app.0001_initial successfully; migration check found no missing
+  model changes at that point.
+- Signed-in admin pages initially used the old server process. Restarted only
+  Coderr on port 8001 with automatic reloading enabled.
+- Opened User profiles in the browser and confirmed the search field and
+  Customer/Business filter were present.
+- Created fictional local user profiltest_customer through Django without a
+  usable password, then created its Customer profile through the browser admin.
+  Left optional fields and file empty. The success message and saved row were
+  visible, including the automatically populated creation date.
+- Read the saved profile through the ORM: user association, customer type,
+  empty text fields, empty file, creation timestamp and string representation
+  matched expectations. The fictional user has no usable password.
+
+This checks a model/admin workflow. No Coderr API endpoint or Postman request
+was tested. The fixture remains in the local ignored database.
+
+### Model tests and regression
+
+Executed `python manage.py test --verbosity 1`: all nine tests passed
+(the three existing admin tests and six new profile model tests).
+
+New checks:
+
+- Customer and Business pass explicit model validation.
+- An unknown role raises ValidationError during full_clean.
+- Optional text fields round-trip as empty strings; file is empty,
+  creation timestamp exists and string representation shows the username.
+- A second profile for the same user fails explicit uniqueness validation.
+- Deleting a user removes its profile.
+- Deleting a profile preserves its user.
+
+The runner created and removed its separate test database. These validation
+tests call full_clean explicitly; they do not claim that save automatically
+validates choices. The duplicate check covers model validation rather than
+an attempted database constraint violation.
+
+`makemigrations --check --dry-run` reported no changes and `migrate --check`
+completed successfully. No Coderr API/PM/Postman result is claimed.

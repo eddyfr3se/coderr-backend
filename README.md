@@ -109,9 +109,13 @@ When switching Coderr to 8000/5500 later, update these together:
 
 ## Project status
 
-This project currently contains the Django setup and empty application
-skeletons. Registration, login, profiles, offers, orders, reviews and statistics
-are not implemented. The `/api/` routes do not expose these features yet.
+This project currently contains the Django setup, application skeletons and
+the UserProfile model with its initial migration and admin configuration.
+The model stores the Customer/Business type, optional profile details, a file
+reference and the creation timestamp. Uploaded-file serving and image
+validation will be added with the upload endpoint.
+Registration, login and all business API endpoints are not implemented yet.
+The `/api/` routes do not expose these features yet.
 
 Applications:
 
@@ -148,3 +152,8 @@ the login page is public, anonymous visitors are redirected to login,
 and an active staff user can open the admin index. Django creates a separate
 test database; the development server does not need to be running.
 The staff test uses a session login helper, not the future API token login.
+
+Six model tests in `auth_app/tests.py` additionally check both valid profile
+types, invalid-type validation, optional defaults, duplicate-profile validation
+and deletion behavior in both directions. These are model tests, not API
+or Postman checks. A plain model save does not automatically call full_clean.

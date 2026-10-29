@@ -49,3 +49,25 @@ need implementation and testing. New concepts will be explained as they arise.
 
 No business endpoints or extra production routes were added. Token tests and
 business validation tests will follow when those endpoints are implemented.
+
+## Day 4 – Profile model and admin, 29 October 2026
+
+- Added UserProfile linked to the configured Django user through OneToOneField.
+- Added customer/business choices, optional location, telephone, description,
+  working hours, a FileField and an automatic creation timestamp.
+- Kept names and email on Django's standard user model. File validation and
+  media serving remain part of the later upload implementation.
+- Generated and applied auth_app.0001_initial. Registered profiles in admin
+  with search, type filters and related-user loading.
+- Created the local admin account and checked the signed-in admin interface.
+  Restarted only Coderr on port 8001 to load the new model/admin code.
+- Created a fictional profile fixture through admin for profiltest_customer,
+  a separate local user with no usable password. Verified the stored values.
+- Added six model checks using the existing APITestCase tooling. Checked
+  roles, validation, empty defaults, timestamps, uniqueness validation and
+  deletion behavior. All nine current tests passed.
+- Confirmed there are no pending migrations or unrecorded model changes.
+
+No API endpoint is complete or marked as done. Postman checks begin with
+registration/login. The local fixtures remain in the ignored database.
+The previously existing settings.py formatting change remains separate.
