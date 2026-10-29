@@ -30,7 +30,9 @@ class Migration(migrations.Migration):
                 ('location', models.CharField(
                     blank=True, default='', max_length=255,
                 )),
-                ('tel', models.CharField(blank=True, default='', max_length=30)),
+                ('tel', models.CharField(
+                    blank=True, default='', max_length=30,
+                )),
                 ('description', models.TextField(blank=True, default='')),
                 ('working_hours', models.CharField(
                     blank=True, default='', max_length=255,
