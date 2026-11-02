@@ -95,3 +95,47 @@ an attempted database constraint violation.
 
 `makemigrations --check --dry-run` reported no changes and `migrate --check`
 completed successfully. No Coderr API/PM/Postman result is claimed.
+
+## Day 5 – Registration and login, 2 November 2026
+
+### Automated API tests
+
+Executed `python manage.py test --verbosity 1`: **21 test methods passed**.
+The twelve new methods cover registration for both profile types, response
+fields and stored tokens, password hashing, mismatch handling, duplicate
+usernames/emails, invalid roles/emails, required fields, login token reuse,
+wrong passwords, unknown/inactive users and unsupported GET methods.
+The test runner created and removed a separate test database.
+
+### Postman desktop Collection Runner
+
+Imported `postman/coderr-day5-auth.postman_collection.json` using the desktop
+app's Import dialog and ran all requests with one iteration. Selected
+No Environment, disabled Keep variable values and enabled running without
+stored cookies. The visible run started at 11:41:18 on 2 November 2026.
+
+| Requests | Assertions | Passed | Failed | Skipped | Execution errors |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 18 | 82 | 82 | 0 | 0 | 0 |
+
+- Customer and Business registration returned 201 with documented fields.
+- Both logins returned 200 and reused their registration tokens.
+- Wrong password, unknown username, email in place of username, password
+  mismatch, duplicate username/email, invalid role/email, missing fields and
+  empty inputs returned controlled 400 errors.
+- GET requests to the two POST-only endpoints returned 405.
+- Assertions checked JSON, exact successful response fields, ID/token types,
+  expected account data and absence of password fields.
+
+This result was observed in the Postman desktop app, not produced by a CLI
+runner or the official Academy PM suite. The committed collection has empty
+runtime values and generates fictional credentials at execution time. Its
+contents were imported unchanged for this run.
+
+The two fictional accounts with suffix 1793616078463_74356 remain locally.
+An ORM read confirmed their customer/business profiles and stored tokens,
+with is_staff/is_superuser both false. No account cleanup endpoint exists yet.
+No personal credentials or actual tokens are included in repository files.
+
+Complete frontend browser flows, official PM tests and using tokens against
+protected business endpoints remain unverified. No broader coverage is claimed.

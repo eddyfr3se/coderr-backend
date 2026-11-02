@@ -56,7 +56,7 @@ python manage.py runserver 127.0.0.1:8001
 
 An admin account is not created automatically. To create one locally, run
 `python manage.py createsuperuser` and follow the interactive prompts.
-This admin account is separate from the future Customer/Business API accounts.
+This admin account is separate from normal Customer/Business API accounts.
 
 ## Frontend
 
@@ -93,7 +93,9 @@ python -m http.server 5501 --bind 127.0.0.1 --directory ../Coderr_Frontend
 
 Open `http://127.0.0.1:5501/` in your browser. The backend allows frontend
 origins `http://127.0.0.1:5501` and `http://localhost:5501` through CORS.
-The frontend can display its pages, but its API features are not implemented yet.
+The frontend can display its pages. Registration and login API endpoints are
+available, while profile loading and the remaining business endpoints are not
+implemented yet. A complete authenticated browser workflow is still pending.
 
 ### Temporary ports
 
@@ -114,8 +116,22 @@ the UserProfile model with its initial migration and admin configuration.
 The model stores the Customer/Business type, optional profile details, a file
 reference and the creation timestamp. Uploaded-file serving and image
 validation will be added with the upload endpoint.
-Registration, login and all business API endpoints are not implemented yet.
-The `/api/` routes do not expose these features yet.
+Registration and login are available:
+
+- `POST /api/registration/`: username, email, password, repeated_password and
+  type (`customer` or `business`); returns HTTP 201.
+- `POST /api/login/`: username and password; returns HTTP 200.
+
+Both responses contain token, username, email and user_id. Passwords are
+processed with Django's password hashing and never included in responses.
+Registration rejects duplicate usernames, duplicate emails regardless of
+letter case, mismatched passwords, missing fields and unsupported types.
+The email uniqueness check is serializer validation, not a database constraint.
+Username uniqueness uses Django's standard user behavior.
+
+Public auth endpoints do not require a token. Later protected API endpoints
+will expect `Authorization: Token <token>`. Profiles, offers, orders, reviews
+and statistics API endpoints are not implemented yet.
 
 Applications:
 
@@ -137,9 +153,8 @@ python manage.py migrate --check
 python -m pip check
 ```
 
-Setup checks and their actual results are recorded in
-[TEST_RESULTS.md](TEST_RESULTS.md). No API regression suite has been executed
-for Coderr, and no official Academy PM result is claimed.
+Checks and their actual results are recorded in
+[TEST_RESULTS.md](TEST_RESULTS.md). No official Academy PM result is claimed.
 
 ### Automated tests
 
@@ -157,3 +172,26 @@ Six model tests in `auth_app/tests.py` additionally check both valid profile
 types, invalid-type validation, optional defaults, duplicate-profile validation
 and deletion behavior in both directions. These are model tests, not API
 or Postman checks. A plain model save does not automatically call full_clean.
+
+Twelve API tests additionally exercise registration and login, including role
+profiles, hashed passwords, token creation/reuse, invalid credentials, inactive
+users, required fields, duplicates and unsupported GET methods. There are
+21 automated test methods in total.
+
+### Postman desktop tests
+
+Import [the authentication collection](postman/coderr-day5-auth.postman_collection.json)
+into the Postman desktop app. Use **No Environment** to avoid overriding its
+`base_url`, which is `http://127.0.0.1:8001/api`.
+
+Run all 18 requests in order with one iteration. Disable **Keep variable
+values** and enable **Run collection without using stored cookies**.
+The first request generates unique fictional usernames, example emails and a
+random local test password. Responses supply tokens for the login comparison.
+Each run creates two local test accounts; no account deletion API is available
+yet, so the accounts remain in the local database.
+
+The desktop Runner run on 2 November 2026 passed all **82 assertions** with
+zero failures, skipped assertions or execution errors. This is a local test
+collection, not the official Academy PM suite. Do not export runtime passwords
+or tokens into repository files.

@@ -71,3 +71,27 @@ business validation tests will follow when those endpoints are implemented.
 No API endpoint is complete or marked as done. Postman checks begin with
 registration/login. The local fixtures remain in the ignored database.
 The previously existing settings.py formatting change remains separate.
+
+## Day 5 – Registration and login, 2 November 2026
+
+- Compared the official auth request/response contracts with the KanMind
+  serializers and adapted the approach for username-based registration/login.
+- Added serializer validation, password confirmation, email duplicate checks
+  and user/profile creation inside a Django database transaction.
+- Added public APIViews and named routes for registration and login.
+  Return only token, username, email and user_id. Login uses authenticate;
+  passwords are hashed through create_user rather than saved as plain text.
+- Added twelve API tests. Together with the existing tests, all 21 passed.
+- Imported a new, separate 18-request Coderr collection into the Postman
+  desktop app. Left KanMind collections unchanged and selected No Environment
+  so their base URL could not override Coderr's port 8001.
+- Ran the collection locally: 82 assertions passed, no failed/skipped
+  assertions or execution errors. Keep variable values was disabled and
+  stored cookies were not used. Verified the two created accounts have
+  the appropriate profiles and tokens and no staff/superuser privileges.
+- Marked registration and login in the browser endpoint checklist and local
+  requirement list. All other operations remain open.
+
+The full frontend registration/login workflow has not yet been checked in the
+browser. Profile loading is still unimplemented. Token authentication against
+a protected business endpoint will be tested once that endpoint exists.
