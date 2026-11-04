@@ -1,0 +1,563 @@
+{
+  "info": {
+    "name": "Coderr Day 6 - Profile Permissions",
+    "description": "Run all requests in order against the local backend. Creates two fictional accounts. Uploads are tested separately. Do not export runtime passwords or tokens.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8001/api"
+    },
+    {
+      "key": "customer_username",
+      "value": ""
+    },
+    {
+      "key": "business_username",
+      "value": ""
+    },
+    {
+      "key": "customer_email",
+      "value": ""
+    },
+    {
+      "key": "business_email",
+      "value": ""
+    },
+    {
+      "key": "test_password",
+      "value": ""
+    },
+    {
+      "key": "customer_token",
+      "value": ""
+    },
+    {
+      "key": "business_token",
+      "value": ""
+    },
+    {
+      "key": "customer_id",
+      "value": ""
+    },
+    {
+      "key": "business_id",
+      "value": ""
+    },
+    {
+      "key": "duplicate_email",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Register customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/registration/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{customer_username}}\",\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"customer\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now().toString() + '_' + Math.floor(Math.random() * 100000);",
+              "pm.collectionVariables.set('customer_username', 'tag6_customer_' + suffix);",
+              "pm.collectionVariables.set('business_username', 'tag6_business_' + suffix);",
+              "pm.collectionVariables.set('customer_email', 'customer_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('business_email', 'business_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('test_password', 'Local!' + pm.variables.replaceIn('{{$randomUUID}}'));",
+              "pm.collectionVariables.set('customer_token', '');",
+              "pm.collectionVariables.set('business_token', '');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact response fields', function () { pm.expect(data).to.have.all.keys('token', 'username', 'email', 'user_id'); });",
+              "pm.test('Token is nonempty text', function () { pm.expect(data.token).to.be.a('string').and.not.empty; });",
+              "pm.test('User ID is a positive number', function () { pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.test('Expected username and email', function () { pm.expect(data.username).to.eql(pm.collectionVariables.get('customer_username')); pm.expect(data.email).to.eql(pm.collectionVariables.get('customer_email')); });",
+              "pm.test('No password fields', function () { pm.expect(data).not.to.have.property('password'); pm.expect(data).not.to.have.property('repeated_password'); });",
+              "pm.collectionVariables.set('customer_token', data.token);",
+              "pm.collectionVariables.set('customer_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Register business",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/registration/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{business_username}}\",\n  \"email\": \"{{business_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"business\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact response fields', function () { pm.expect(data).to.have.all.keys('token', 'username', 'email', 'user_id'); });",
+              "pm.test('Token is nonempty text', function () { pm.expect(data.token).to.be.a('string').and.not.empty; });",
+              "pm.test('User ID is a positive number', function () { pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.test('Expected username and email', function () { pm.expect(data.username).to.eql(pm.collectionVariables.get('business_username')); pm.expect(data.email).to.eql(pm.collectionVariables.get('business_email')); });",
+              "pm.test('No password fields', function () { pm.expect(data).not.to.have.property('password'); pm.expect(data).not.to.have.property('repeated_password'); });",
+              "pm.collectionVariables.set('business_token', data.token);",
+              "pm.collectionVariables.set('business_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Read own profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact profile fields', function () { pm.expect(data).to.have.all.keys('user', 'username', 'first_name', 'last_name', 'file', 'location', 'tel', 'description', 'working_hours', 'type', 'email', 'created_at'); });",
+              "pm.test('Correct profile owner', function () { pm.expect(data.user).to.eql(Number(pm.collectionVariables.get('customer_id'))); });",
+              "pm.test('Optional text starts empty', function () { ['first_name','last_name','location','tel','description','working_hours'].forEach(function (field) { pm.expect(data[field]).to.eql(''); }); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Read another user profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact profile fields', function () { pm.expect(data).to.have.all.keys('user', 'username', 'first_name', 'last_name', 'file', 'location', 'tel', 'description', 'working_hours', 'type', 'email', 'created_at'); });",
+              "pm.test('Correct profile owner', function () { pm.expect(data.user).to.eql(Number(pm.collectionVariables.get('customer_id'))); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Update own profile",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"first_name\": \"Mara\", \"location\": \"Berlin\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact profile fields', function () { pm.expect(data).to.have.all.keys('user', 'username', 'first_name', 'last_name', 'file', 'location', 'tel', 'description', 'working_hours', 'type', 'email', 'created_at'); });",
+              "pm.test('Changes returned and omitted fields preserved', function () { pm.expect(data.first_name).to.eql('Mara'); pm.expect(data.location).to.eql('Berlin'); pm.expect(data.last_name).to.eql(''); pm.expect(data.type).to.eql('customer'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Verify changes were saved",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Saved changes', function () { pm.expect(data.first_name).to.eql('Mara'); pm.expect(data.location).to.eql('Berlin'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Reject changes by another user",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"location\": \"Hamburg\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', function () { pm.response.to.have.status(403); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Verify rejected change was not saved",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Location unchanged', function () { pm.expect(data.location).to.eql('Berlin'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Reject anonymous read",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/profile/{{customer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Reject anonymous update",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"location\": \"Hamburg\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Reject duplicate email",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"{{business_email}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', function () { pm.response.to.have.status(400); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Email validation error', function () { pm.expect(data).to.have.property('email'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Verify email unchanged",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Original email preserved', function () { pm.expect(data.email).to.eql(pm.collectionVariables.get('customer_email')); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 Missing profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ],
+        "url": "{{base_url}}/profile/0/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', function () { pm.response.to.have.status(404); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 Reject PUT",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"location\": \"Hamburg\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 405', function () { pm.response.to.have.status(405); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 Reject DELETE",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 405', function () { pm.response.to.have.status(405); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

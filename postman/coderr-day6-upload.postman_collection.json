@@ -1,0 +1,280 @@
+{
+  "info": {
+    "name": "Coderr Day 6 - Profile Upload Local Files",
+    "description": "Before running, copy postman/fixtures/testbild.gif to the Postman working directory as coderr-testbild.gif, or select that fixture in both upload requests. Creates two fictional accounts. Do not export runtime credentials.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8001/api"
+    },
+    {
+      "key": "customer_username",
+      "value": ""
+    },
+    {
+      "key": "business_username",
+      "value": ""
+    },
+    {
+      "key": "customer_email",
+      "value": ""
+    },
+    {
+      "key": "business_email",
+      "value": ""
+    },
+    {
+      "key": "test_password",
+      "value": ""
+    },
+    {
+      "key": "customer_token",
+      "value": ""
+    },
+    {
+      "key": "business_token",
+      "value": ""
+    },
+    {
+      "key": "customer_id",
+      "value": ""
+    },
+    {
+      "key": "business_id",
+      "value": ""
+    },
+    {
+      "key": "duplicate_email",
+      "value": ""
+    },
+    {
+      "key": "uploaded_url",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Register customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/registration/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{customer_username}}\",\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"customer\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now().toString() + '_' + Math.floor(Math.random() * 100000);",
+              "pm.collectionVariables.set('customer_username', 'tag6_customer_' + suffix);",
+              "pm.collectionVariables.set('business_username', 'tag6_business_' + suffix);",
+              "pm.collectionVariables.set('customer_email', 'customer_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('business_email', 'business_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('test_password', 'Local!' + pm.variables.replaceIn('{{$randomUUID}}'));",
+              "pm.collectionVariables.set('customer_token', '');",
+              "pm.collectionVariables.set('business_token', '');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact response fields', function () { pm.expect(data).to.have.all.keys('token', 'username', 'email', 'user_id'); });",
+              "pm.test('Token is nonempty text', function () { pm.expect(data.token).to.be.a('string').and.not.empty; });",
+              "pm.test('User ID is a positive number', function () { pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.test('Expected username and email', function () { pm.expect(data.username).to.eql(pm.collectionVariables.get('customer_username')); pm.expect(data.email).to.eql(pm.collectionVariables.get('customer_email')); });",
+              "pm.test('No password fields', function () { pm.expect(data).not.to.have.property('password'); pm.expect(data).not.to.have.property('repeated_password'); });",
+              "pm.collectionVariables.set('customer_token', data.token);",
+              "pm.collectionVariables.set('customer_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Register business",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/registration/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{business_username}}\",\n  \"email\": \"{{business_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"business\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact response fields', function () { pm.expect(data).to.have.all.keys('token', 'username', 'email', 'user_id'); });",
+              "pm.test('Token is nonempty text', function () { pm.expect(data.token).to.be.a('string').and.not.empty; });",
+              "pm.test('User ID is a positive number', function () { pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.test('Expected username and email', function () { pm.expect(data.username).to.eql(pm.collectionVariables.get('business_username')); pm.expect(data.email).to.eql(pm.collectionVariables.get('business_email')); });",
+              "pm.test('No password fields', function () { pm.expect(data).not.to.have.property('password'); pm.expect(data).not.to.have.property('repeated_password'); });",
+              "pm.collectionVariables.set('business_token', data.token);",
+              "pm.collectionVariables.set('business_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Upload own profile image",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "coderr-testbild.gif"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "const data = pm.response.json();",
+              "pm.test('Media URL returned', function () { pm.expect(data.file).to.include('/media/profiles/'); });",
+              "pm.test('Correct owner', function () { pm.expect(data.user).to.eql(Number(pm.collectionVariables.get('customer_id'))); });",
+              "pm.collectionVariables.set('uploaded_url', data.file);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Retrieve uploaded image",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{uploaded_url}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('GIF content type', function () { pm.expect(pm.response.headers.get('Content-Type')).to.include('image/gif'); });",
+              "pm.test('GIF file contents', function () { pm.expect(pm.response.text()).to.include('GIF89a'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Reject foreign image upload",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": "coderr-testbild.gif"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', function () { pm.response.to.have.status(403); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Verify file unchanged",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ],
+        "url": "{{base_url}}/profile/{{customer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Original file URL preserved', function () { pm.expect(pm.response.json().file).to.eql(pm.collectionVariables.get('uploaded_url')); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

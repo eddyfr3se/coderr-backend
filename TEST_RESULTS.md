@@ -139,3 +139,139 @@ No personal credentials or actual tokens are included in repository files.
 
 Complete frontend browser flows, official PM tests and using tokens against
 protected business endpoints remain unverified. No broader coverage is claimed.
+
+## Day 6 – Profile detail and permissions, 4 November 2026
+
+Executed `python manage.py test --verbosity 1`: **30 test methods passed**.
+Nine additional methods check partial serializer updates, email uniqueness,
+authenticated reads, owner updates, rejected anonymous/foreign updates,
+missing profiles and unsupported methods. Tests use a separate test database.
+
+Imported `postman/coderr-day6-profiles.postman_collection.json` into the
+Postman desktop app and ran all 15 requests with one iteration, No Environment,
+Keep variable values disabled and stored cookies disabled. The visible run
+started at 15:29:25 on 4 November 2026 and took 956 ms.
+
+| Requests | Assertions | Passed | Failed | Skipped | Execution errors |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 15 | 51 | 51 | 0 | 0 | 0 |
+
+Verified exact profile fields, empty optional text, reading another profile,
+saved partial changes, rejected foreign changes (403), anonymous access (401),
+duplicate email validation (400), missing profiles (404) and PUT/DELETE (405).
+Follow-up reads confirmed rejected changes did not alter stored values.
+
+The run created two fictional local accounts. Runtime credentials are absent
+from the collection file. These are own desktop tests, not the official PM
+suite. File uploads, media serving, profile lists and the frontend flow remain
+unverified. PATCH is therefore not marked fully complete yet.
+
+### Upload checks in the Django test runner
+
+After configuring MEDIA_ROOT, MEDIA_URL and local media routing, executed
+`python manage.py test --verbosity 1`: **33 test methods passed**.
+Three new multipart tests verify an owner's GIF upload and its saved bytes,
+rejection of another user's upload (403) and rejection of an empty file (400).
+Temporary upload directories are removed after the tests. These checks do
+not prove image-content validation: the model currently uses FileField.
+Upload testing in Postman, HTTP media retrieval and frontend verification
+remain open.
+
+### Upload checks in the Postman desktop app
+
+The first upload run did not finish: the imported file reference did not
+supply a file, so PATCH returned 200 with file=null. The media-URL assertion
+failed and the following GET could not be sent. Two fictional accounts were
+created by that attempt; no successful upload is claimed for it.
+
+Copied the neutral fixture to the Postman working directory as
+coderr-testbild.gif and corrected both multipart requests to use that relative
+filename. Imported the corrected collection as
+`Coderr Day 6 - Profile Upload Local Files` and ran all six requests with
+one iteration, No Environment, Keep variable values disabled and stored
+cookies disabled. The run started at 15:44:14 on 4 November 2026.
+
+| Requests | Assertions | Passed | Failed | Skipped | Execution errors |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 6 | 23 | 23 | 0 | 0 | 0 |
+
+The owner upload returned 200 with a media URL. GET of that URL returned 200,
+image/gif and GIF89a data. A foreign upload returned 403; a subsequent profile
+read confirmed the original file URL was preserved. Duration: 516 ms.
+This second run created another two fictional accounts which remain locally.
+The source fixture and sanitized collection are in postman/. Runtime
+credentials are absent from the repository files. The complete frontend
+upload flow and image-content validation remain unverified.
+
+### Profile list endpoints in the Django test runner
+
+Executed `python manage.py test --verbosity 1`: **40 test methods passed**.
+Two serializer tests verify the documented field sets. Five list endpoint
+tests cover anonymous access (401), both authenticated roles reading both
+lists, type filtering, arrays without pagination, empty lists and rejected
+write methods (405). A query-count test with two profiles per type observed
+two queries per request: token authentication and the joined profile/user
+list. This is a query-count check, not a measured before/after comparison.
+Both list endpoints still require Postman desktop verification.
+
+### Profile lists in the Postman desktop app
+
+Imported `postman/coderr-day6-lists.postman_collection.json` and ran all ten
+requests with one iteration, No Environment, Keep variable values disabled
+and stored cookies disabled. Run time: 16:46:14 on 4 November 2026; 574 ms.
+
+| Requests | Assertions | Passed | Failed | Skipped | Execution errors |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 10 | 42 | 42 | 0 | 0 | 0 |
+
+Both Customer and Business tokens could read both arrays. Every returned
+profile had the expected type and exact documented field set. The newly
+registered accounts were included. Anonymous reads returned 401; POST requests
+returned 405. Two additional fictional local accounts remain after the run.
+No runtime credentials are stored in the collection file. The complete
+frontend flow is still open.
+
+### Customer profile in the supplied frontend
+
+Started the separate frontend on 127.0.0.1:5501 and used the backend on
+127.0.0.1:8001. In the browser, registered fictional Customer account
+alex_kunde_0411, opened its own profile, changed first/last name to Alex Muster
+and selected postman/fixtures/testbild.png through the file chooser.
+Saved the form, reloaded the page, logged out and logged in again using
+the frontend login form. The saved name and blue test image remained visible.
+Both profile/header image elements referenced the backend media URL.
+An ORM/file read confirmed the stored name and that the PNG bytes match the
+fixture. No personal image or real contact address was used.
+
+The frontend only accepts PNG/JPEG previews, so this check used a PNG rather
+than the GIF used in Postman. No frontend source change was required.
+Missing review/order/offer/base-info endpoints still cause errors on their
+respective pages; they belong to later work. The Customer own-profile page
+showed a review-loading error. This is a successful targeted profile check,
+not a claim that the whole frontend works. The Business edit form and public
+profile pages remain unverified.
+
+### Business profile in the supplied frontend
+
+Registered fictional Business account mara_anbieter_0411 in the browser.
+Edited its name, phone, location, description and working hours, and uploaded
+the PNG fixture through the file chooser. After saving, reloading, logging
+out and logging in again through the frontend form, all edited fields and
+the blue image remained visible. Both profile/header image elements used
+the stored media URL. An ORM/file read confirmed the edited values and PNG
+bytes. Django stored a different filename to preserve the existing Customer
+upload with the same original name. No frontend source edits were required.
+
+The review-loading error remains visible because that endpoint is scheduled
+for later work. Offers, orders, reviews, statistics, public profile pages,
+guest logins and the complete platform workflow are not claimed as verified.
+
+### Day 6 final checks
+
+Final `python manage.py test --verbosity 1`: **40 test methods passed**.
+`manage.py check` reported no issues; `makemigrations --check --dry-run`
+reported no changes; `migrate --check` succeeded; `pip check` found no broken
+requirements. Pip disabled its unavailable local cache, without affecting
+the dependency check. `git diff --check` passed. Git ignore checks confirmed
+that .env, the database, media uploads and local planning files stay excluded.
+No model changes or new migration were needed for Day 6.

@@ -1,0 +1,364 @@
+{
+  "info": {
+    "name": "Coderr Day 6 - Profile Lists",
+    "description": "Run all requests in order locally. Creates two fictional accounts and checks both profile lists for both roles, anonymous access and rejected writes. Runtime credentials must not be exported.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8001/api"
+    },
+    {
+      "key": "customer_username",
+      "value": ""
+    },
+    {
+      "key": "business_username",
+      "value": ""
+    },
+    {
+      "key": "customer_email",
+      "value": ""
+    },
+    {
+      "key": "business_email",
+      "value": ""
+    },
+    {
+      "key": "test_password",
+      "value": ""
+    },
+    {
+      "key": "customer_token",
+      "value": ""
+    },
+    {
+      "key": "business_token",
+      "value": ""
+    },
+    {
+      "key": "customer_id",
+      "value": ""
+    },
+    {
+      "key": "business_id",
+      "value": ""
+    },
+    {
+      "key": "duplicate_email",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Register customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/registration/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{customer_username}}\",\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"customer\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now().toString() + '_' + Math.floor(Math.random() * 100000);",
+              "pm.collectionVariables.set('customer_username', 'tag6_customer_' + suffix);",
+              "pm.collectionVariables.set('business_username', 'tag6_business_' + suffix);",
+              "pm.collectionVariables.set('customer_email', 'customer_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('business_email', 'business_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('test_password', 'Local!' + pm.variables.replaceIn('{{$randomUUID}}'));",
+              "pm.collectionVariables.set('customer_token', '');",
+              "pm.collectionVariables.set('business_token', '');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact response fields', function () { pm.expect(data).to.have.all.keys('token', 'username', 'email', 'user_id'); });",
+              "pm.test('Token is nonempty text', function () { pm.expect(data.token).to.be.a('string').and.not.empty; });",
+              "pm.test('User ID is a positive number', function () { pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.test('Expected username and email', function () { pm.expect(data.username).to.eql(pm.collectionVariables.get('customer_username')); pm.expect(data.email).to.eql(pm.collectionVariables.get('customer_email')); });",
+              "pm.test('No password fields', function () { pm.expect(data).not.to.have.property('password'); pm.expect(data).not.to.have.property('repeated_password'); });",
+              "pm.collectionVariables.set('customer_token', data.token);",
+              "pm.collectionVariables.set('customer_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Register business",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/registration/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{business_username}}\",\n  \"email\": \"{{business_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"business\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact response fields', function () { pm.expect(data).to.have.all.keys('token', 'username', 'email', 'user_id'); });",
+              "pm.test('Token is nonempty text', function () { pm.expect(data.token).to.be.a('string').and.not.empty; });",
+              "pm.test('User ID is a positive number', function () { pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.test('Expected username and email', function () { pm.expect(data.username).to.eql(pm.collectionVariables.get('business_username')); pm.expect(data.email).to.eql(pm.collectionVariables.get('business_email')); });",
+              "pm.test('No password fields', function () { pm.expect(data).not.to.have.property('password'); pm.expect(data).not.to.have.property('repeated_password'); });",
+              "pm.collectionVariables.set('business_token', data.token);",
+              "pm.collectionVariables.set('business_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 customer reads customer list",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/profiles/customer/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Array response', function () { pm.expect(data).to.be.an('array'); });",
+              "pm.test('Only expected type and fields', function () { data.forEach(function (profile) { pm.expect(profile.type).to.eql('customer'); pm.expect(profile).to.have.all.keys('user', 'username', 'first_name', 'last_name', 'file', 'uploaded_at', 'type'); }); });",
+              "pm.test('New account is included', function () { pm.expect(data.some(function (profile) { return profile.user === Number(pm.collectionVariables.get('customer_id')); })).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 customer reads business list",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/profiles/business/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Array response', function () { pm.expect(data).to.be.an('array'); });",
+              "pm.test('Only expected type and fields', function () { data.forEach(function (profile) { pm.expect(profile.type).to.eql('business'); pm.expect(profile).to.have.all.keys('user', 'username', 'first_name', 'last_name', 'file', 'location', 'tel', 'description', 'working_hours', 'type'); }); });",
+              "pm.test('New account is included', function () { pm.expect(data.some(function (profile) { return profile.user === Number(pm.collectionVariables.get('business_id')); })).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 business reads customer list",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/profiles/customer/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Array response', function () { pm.expect(data).to.be.an('array'); });",
+              "pm.test('Only expected type and fields', function () { data.forEach(function (profile) { pm.expect(profile.type).to.eql('customer'); pm.expect(profile).to.have.all.keys('user', 'username', 'first_name', 'last_name', 'file', 'uploaded_at', 'type'); }); });",
+              "pm.test('New account is included', function () { pm.expect(data.some(function (profile) { return profile.user === Number(pm.collectionVariables.get('customer_id')); })).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 business reads business list",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/profiles/business/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Array response', function () { pm.expect(data).to.be.an('array'); });",
+              "pm.test('Only expected type and fields', function () { data.forEach(function (profile) { pm.expect(profile.type).to.eql('business'); pm.expect(profile).to.have.all.keys('user', 'username', 'first_name', 'last_name', 'file', 'location', 'tel', 'description', 'working_hours', 'type'); }); });",
+              "pm.test('New account is included', function () { pm.expect(data.some(function (profile) { return profile.user === Number(pm.collectionVariables.get('business_id')); })).to.eql(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Reject anonymous customer list",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/profiles/customer/",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Reject anonymous business list",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/profiles/business/",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', function () { pm.response.to.have.status(401); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Reject POST customer list",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/profiles/customer/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 405', function () { pm.response.to.have.status(405); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Reject POST business list",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/profiles/business/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 405', function () { pm.response.to.have.status(405); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

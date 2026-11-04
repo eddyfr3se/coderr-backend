@@ -93,9 +93,10 @@ python -m http.server 5501 --bind 127.0.0.1 --directory ../Coderr_Frontend
 
 Open `http://127.0.0.1:5501/` in your browser. The backend allows frontend
 origins `http://127.0.0.1:5501` and `http://localhost:5501` through CORS.
-The frontend can display its pages. Registration and login API endpoints are
-available, while profile loading and the remaining business endpoints are not
-implemented yet. A complete authenticated browser workflow is still pending.
+Registration, login, own-profile loading/editing and PNG upload were checked
+in the browser for Customer and Business accounts, including a fresh login.
+Offers, orders, reviews and statistics are still pending. Their missing
+endpoints can produce error messages on the supplied frontend pages.
 
 ### Temporary ports
 
@@ -114,8 +115,10 @@ When switching Coderr to 8000/5500 later, update these together:
 This project currently contains the Django setup, application skeletons and
 the UserProfile model with its initial migration and admin configuration.
 The model stores the Customer/Business type, optional profile details, a file
-reference and the creation timestamp. Uploaded-file serving and image
-validation will be added with the upload endpoint.
+reference and the creation timestamp. Uploaded files are stored locally in
+`media/profiles/` and served under `/media/` when DEBUG is enabled. The media
+directory is excluded from Git. The current FileField does not validate
+image contents; the supplied frontend previews PNG/JPEG files.
 Registration and login are available:
 
 - `POST /api/registration/`: username, email, password, repeated_password and
@@ -129,9 +132,19 @@ letter case, mismatched passwords, missing fields and unsupported types.
 The email uniqueness check is serializer validation, not a database constraint.
 Username uniqueness uses Django's standard user behavior.
 
-Public auth endpoints do not require a token. Later protected API endpoints
-will expect `Authorization: Token <token>`. Profiles, offers, orders, reviews
-and statistics API endpoints are not implemented yet.
+Public auth endpoints do not require a token. Profile endpoints require
+`Authorization: Token <token>`:
+
+- `GET /api/profile/{pk}/`: read a profile by user ID.
+- `PATCH /api/profile/{pk}/`: update only your own profile; accepts JSON for
+  text fields or multipart/form-data with `file` for an upload.
+- `GET /api/profiles/business/`: array of Business profiles.
+- `GET /api/profiles/customer/`: array of Customer profiles.
+
+PATCH returns the complete profile. Account type, username and owner cannot
+be changed through this serializer. Customer-list `uploaded_at` currently
+uses the profile creation timestamp, not the time of an image replacement.
+Offers, orders, reviews and statistics API endpoints are not implemented yet.
 
 Applications:
 
@@ -175,8 +188,11 @@ or Postman checks. A plain model save does not automatically call full_clean.
 
 Twelve API tests additionally exercise registration and login, including role
 profiles, hashed passwords, token creation/reuse, invalid credentials, inactive
-users, required fields, duplicates and unsupported GET methods. There are
-21 automated test methods in total.
+users, required fields, duplicates and unsupported GET methods.
+Nineteen tests in `auth_app/test_profiles.py` cover profile serializers,
+partial updates, email validation, permissions, uploads, filtered lists,
+unsupported methods and query counts. There are **40 automated test methods**
+in total. Upload tests use temporary directories that are cleaned up.
 
 ### Postman desktop tests
 
@@ -195,3 +211,18 @@ The desktop Runner run on 2 November 2026 passed all **82 assertions** with
 zero failures, skipped assertions or execution errors. This is a local test
 collection, not the official Academy PM suite. Do not export runtime passwords
 or tokens into repository files.
+
+Day 6 adds these desktop collections. Run each collection in order with the
+same settings as above; each creates two fictional local accounts.
+
+| Collection | Requests | Passed assertions, 4 November 2026 |
+| --- | ---: | ---: |
+| [Profiles](postman/coderr-day6-profiles.postman_collection.json) | 15 | 51 |
+| [Uploads](postman/coderr-day6-upload.postman_collection.json) | 6 | 23 |
+| [Profile lists](postman/coderr-day6-lists.postman_collection.json) | 10 | 42 |
+
+Before running the upload collection, copy `postman/fixtures/testbild.gif`
+to your Postman working directory as `coderr-testbild.gif`, or select that
+fixture in both multipart upload requests. These runs had no failed/skipped
+assertions or execution errors. An earlier unsuccessful upload run and its
+file-reference correction are documented in [TEST_RESULTS.md](TEST_RESULTS.md).

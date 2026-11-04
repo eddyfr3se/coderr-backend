@@ -95,3 +95,45 @@ The previously existing settings.py formatting change remains separate.
 The full frontend registration/login workflow has not yet been checked in the
 browser. Profile loading is still unimplemented. Token authentication against
 a protected business endpoint will be tested once that endpoint exists.
+
+## Day 6 – In progress, 4 November 2026
+
+- Added separate serializers for profile output and partial updates.
+- Added an owner permission and a RetrieveUpdateAPIView with a named route.
+  Profile lookup uses the user ID. Related user data is loaded together.
+- Verified 30 automated test methods and ran the new 15-request collection
+  in the Postman desktop app: all 51 assertions passed with no errors.
+- Reading and text updates work with token authentication. File uploads,
+  media configuration, profile lists and frontend verification remain open.
+
+- Configured MEDIA_ROOT/MEDIA_URL and development-only media routing.
+- Added three upload tests; all 33 automated test methods passed.
+- Corrected a missing local file reference in Postman. The repeated upload
+  run passed all 23 assertions, including media retrieval and owner checks.
+  The unsuccessful first attempt is recorded in TEST_RESULTS.md.
+- Profile lists and the complete frontend flow remain open for Day 6.
+
+- Added separate Business/Customer list serializers and read-only list
+  endpoints with token authentication. Querysets filter by profile type and
+  load related users together. Lists return arrays without pagination.
+- All 40 automated test methods passed. List checks include access control,
+  type filtering, empty lists, unsupported methods and query counts.
+  Postman checks for these lists and the complete frontend flow remain open.
+
+- Ran all ten profile-list requests in the Postman desktop app: all 42
+  assertions passed, no errors. Marked both list operations complete in the
+  local endpoint checklist. Frontend verification remains open.
+
+- Started the supplied frontend separately on port 5501. Verified Customer
+  registration, login, own-profile loading, name editing and PNG upload in
+  the browser, including persistence after reload and a fresh login.
+- Confirmed saved PNG bytes match the test fixture. No frontend source
+  changes were needed. Business profile editing remains to be checked;
+  missing later endpoints still cause visible errors elsewhere on the page.
+
+- Verified Business registration/login, profile editing and PNG upload in
+  the supplied frontend, including persistence after a fresh login. Confirmed
+  stored fields and uploaded bytes. No frontend source changes were needed.
+- Completed the Day 6 profile scope. Errors from the later review/offer/order
+  and statistics endpoints remain outside this milestone. Updated the README
+  with profile routes, upload storage and current test instructions.
