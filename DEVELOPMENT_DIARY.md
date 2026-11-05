@@ -137,3 +137,17 @@ a protected business endpoint will be tested once that endpoint exists.
 - Completed the Day 6 profile scope. Errors from the later review/offer/order
   and statistics endpoints remain outside this milestone. Updated the README
   with profile routes, upload storage and current test instructions.
+
+## Day 7 – 5 November 2026
+
+- Added Offer and OfferDetail models, linked by ForeignKey, and applied their
+  initial migration. Registered both models in the admin with search,
+  package-type filtering and related-object loading.
+- Added explicit package and offer serializers. Validation requires exactly
+  one basic, standard and premium package. Prices use decimal values; delivery
+  time starts at one day and revisions allow -1 for unlimited revisions.
+- Added nested creation inside a database transaction. The caller supplies
+  the owner; API authentication and business-role checks follow with the view.
+- All 54 automated tests passed, including fourteen offer tests. Migration
+  consistency and admin page responses were checked. No offer Postman or
+  frontend checks were run because those API routes are not implemented yet.

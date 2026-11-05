@@ -191,8 +191,13 @@ profiles, hashed passwords, token creation/reuse, invalid credentials, inactive
 users, required fields, duplicates and unsupported GET methods.
 Nineteen tests in `auth_app/test_profiles.py` cover profile serializers,
 partial updates, email validation, permissions, uploads, filtered lists,
-unsupported methods and query counts. There are **40 automated test methods**
-in total. Upload tests use temporary directories that are cleaned up.
+unsupported methods and query counts. Upload tests use temporary directories
+that are cleaned up.
+
+Fourteen tests in `offers_app/tests.py` cover package and offer validation,
+nested creation, server-supplied ownership and database rollback when package
+creation fails. There are **54 automated test methods** in total. Offer API
+routes and their permissions are not implemented yet.
 
 ### Postman desktop tests
 

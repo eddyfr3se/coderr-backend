@@ -275,3 +275,26 @@ requirements. Pip disabled its unavailable local cache, without affecting
 the dependency check. `git diff --check` passed. Git ignore checks confirmed
 that .env, the database, media uploads and local planning files stay excluded.
 No model changes or new migration were needed for Day 6.
+
+## Day 7 – 5 November 2026
+
+Added Offer and OfferDetail models and applied offers_app.0001_initial to the
+local database. Both new tables were confirmed present and empty. Admin list
+and add pages for both models returned 200 using Django's test client with an
+existing superuser; this was not a browser or Postman check.
+
+Added fourteen automated offer tests covering numeric/string prices,
+unlimited revisions, invalid field values, required fields, numeric JSON price
+output, three distinct package types, package counts, nested validation and
+optional images. Creation checks verify linked packages, server-supplied
+ownership and rollback of the offer and first package when the second package
+fails. These tests use a separate test database where needed.
+
+Final `python manage.py test --verbosity 1`: **54 test methods passed**.
+System checks reported no issues. `makemigrations --check --dry-run` reported
+no changes; `migrate --check` and `git diff --check` succeeded.
+
+No offer endpoint was tested in Postman or the frontend: offer views, routes
+and role permissions are still pending. No additional API checklist item is
+complete. FileField does not validate image content. Database rollback does
+not provide cleanup for uploaded files in external file storage.
