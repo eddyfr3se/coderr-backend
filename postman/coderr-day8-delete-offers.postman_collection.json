@@ -1,0 +1,456 @@
+{
+  "info": {
+    "name": "Coderr Day 8 - Delete Offers",
+    "description": "Local deletion checks. Creates two fictional accounts and a disposable offer, then deletes only that offer and verifies all three packages are gone.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8001/api"
+    },
+    {
+      "key": "customer_username",
+      "value": ""
+    },
+    {
+      "key": "business_username",
+      "value": ""
+    },
+    {
+      "key": "customer_email",
+      "value": ""
+    },
+    {
+      "key": "business_email",
+      "value": ""
+    },
+    {
+      "key": "test_password",
+      "value": ""
+    },
+    {
+      "key": "customer_token",
+      "value": ""
+    },
+    {
+      "key": "business_token",
+      "value": ""
+    },
+    {
+      "key": "customer_id",
+      "value": ""
+    },
+    {
+      "key": "business_id",
+      "value": ""
+    },
+    {
+      "key": "duplicate_email",
+      "value": ""
+    },
+    {
+      "key": "offer_id",
+      "value": ""
+    },
+    {
+      "key": "package_0_id",
+      "value": ""
+    },
+    {
+      "key": "package_1_id",
+      "value": ""
+    },
+    {
+      "key": "package_2_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Register customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/registration/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{customer_username}}\",\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"customer\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now().toString() + '_' + Math.floor(Math.random() * 100000);",
+              "pm.collectionVariables.set('customer_username', 'tag8_customer_' + suffix);",
+              "pm.collectionVariables.set('business_username', 'tag8_business_' + suffix);",
+              "pm.collectionVariables.set('customer_email', 'customer_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('business_email', 'business_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('test_password', 'Local!' + pm.variables.replaceIn('{{$randomUUID}}'));",
+              "pm.collectionVariables.set('customer_token', '');",
+              "pm.collectionVariables.set('business_token', '');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact response fields', function () { pm.expect(data).to.have.all.keys('token', 'username', 'email', 'user_id'); });",
+              "pm.test('Token is nonempty text', function () { pm.expect(data.token).to.be.a('string').and.not.empty; });",
+              "pm.test('User ID is a positive number', function () { pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.test('Expected username and email', function () { pm.expect(data.username).to.eql(pm.collectionVariables.get('customer_username')); pm.expect(data.email).to.eql(pm.collectionVariables.get('customer_email')); });",
+              "pm.test('No password fields', function () { pm.expect(data).not.to.have.property('password'); pm.expect(data).not.to.have.property('repeated_password'); });",
+              "pm.collectionVariables.set('customer_token', data.token);",
+              "pm.collectionVariables.set('customer_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Register business",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base_url}}/registration/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{business_username}}\",\n  \"email\": \"{{business_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"business\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', function () { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact response fields', function () { pm.expect(data).to.have.all.keys('token', 'username', 'email', 'user_id'); });",
+              "pm.test('Token is nonempty text', function () { pm.expect(data.token).to.be.a('string').and.not.empty; });",
+              "pm.test('User ID is a positive number', function () { pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.test('Expected username and email', function () { pm.expect(data.username).to.eql(pm.collectionVariables.get('business_username')); pm.expect(data.email).to.eql(pm.collectionVariables.get('business_email')); });",
+              "pm.test('No password fields', function () { pm.expect(data).not.to.have.property('password'); pm.expect(data).not.to.have.property('repeated_password'); });",
+              "pm.collectionVariables.set('business_token', data.token);",
+              "pm.collectionVariables.set('business_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Business creates offer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ],
+        "url": "{{base_url}}/offers/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Postman Grafikdesign\",\n  \"image\": null,\n  \"description\": \"Lokales Testangebot\",\n  \"details\": [\n    {\n      \"title\": \"basic Design\",\n      \"revisions\": -1,\n      \"delivery_time_in_days\": 5,\n      \"price\": \"100.50\",\n      \"features\": [\n        \"Logo\"\n      ],\n      \"offer_type\": \"basic\"\n    },\n    {\n      \"title\": \"standard Design\",\n      \"revisions\": -1,\n      \"delivery_time_in_days\": 5,\n      \"price\": 200,\n      \"features\": [\n        \"Logo\"\n      ],\n      \"offer_type\": \"standard\"\n    },\n    {\n      \"title\": \"premium Design\",\n      \"revisions\": -1,\n      \"delivery_time_in_days\": 5,\n      \"price\": 200,\n      \"features\": [\n        \"Logo\"\n      ],\n      \"offer_type\": \"premium\"\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Exact offer fields', () => pm.expect(data).to.have.all.keys('id','title','image','description','details'));",
+              "pm.test('Offer ID', () => pm.expect(data.id).to.be.a('number').above(0));",
+              "pm.test('Three package types', () => { pm.expect(data.details).to.have.lengthOf(3); pm.expect(data.details.map(d => d.offer_type)).to.have.members(['basic','standard','premium']); });",
+              "pm.test('Package fields and values', () => data.details.forEach(d => { pm.expect(d).to.have.all.keys('id','title','revisions','delivery_time_in_days','price','features','offer_type'); pm.expect(d.id).to.be.a('number').above(0); pm.expect(d.revisions).to.eql(-1); pm.expect(d.delivery_time_in_days).to.eql(5); pm.expect(d.price).to.eql(d.offer_type === 'basic' ? 100.5 : 200); pm.expect(d.features).to.eql(['Logo']); }));",
+              "pm.test('Optional image', () => pm.expect(data.image).to.eql(null));",
+              "pm.collectionVariables.set('offer_id', data.id);",
+              "data.details.forEach((d, i) => pm.collectionVariables.set('package_' + i + '_id', d.id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Customer cannot delete",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ],
+        "url": "{{base_url}}/offers/{{offer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => pm.response.to.have.status(403));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => pm.expect(data).to.have.property('detail'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Anonymous cannot delete",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{base_url}}/offers/{{offer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => pm.expect(data).to.have.property('detail'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Offer survives rejected deletes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ],
+        "url": "{{base_url}}/offers/{{offer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Same offer and three packages', () => { pm.expect(data.id).to.eql(Number(pm.collectionVariables.get('offer_id'))); pm.expect(data.details).to.have.lengthOf(3); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Owner deletes disposable offer",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ],
+        "url": "{{base_url}}/offers/{{offer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));",
+              "pm.test('Empty response body', () => pm.expect(pm.response.text()).to.eql(''));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Deleted offer is absent",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ],
+        "url": "{{base_url}}/offers/{{offer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => pm.expect(data).to.have.property('detail'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Deleted package 1 is absent",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ],
+        "url": "{{base_url}}/offerdetails/{{package_0_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => pm.expect(data).to.have.property('detail'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Deleted package 2 is absent",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ],
+        "url": "{{base_url}}/offerdetails/{{package_1_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => pm.expect(data).to.have.property('detail'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Deleted package 3 is absent",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ],
+        "url": "{{base_url}}/offerdetails/{{package_2_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => pm.expect(data).to.have.property('detail'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Repeated delete returns 404",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ],
+        "url": "{{base_url}}/offers/{{offer_id}}/"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => pm.expect(data).to.have.property('detail'));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

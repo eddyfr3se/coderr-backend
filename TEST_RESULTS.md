@@ -298,3 +298,92 @@ No offer endpoint was tested in Postman or the frontend: offer views, routes
 and role permissions are still pending. No additional API checklist item is
 complete. FileField does not validate image content. Database rollback does
 not provide cleanup for uploaded files in external file storage.
+
+## Day 8 – Offer creation, 7 November 2026
+
+Added POST /api/offers/ with token authentication, a business-profile
+permission and server-supplied ownership. All 60 automated test methods passed.
+
+Ran postman/coderr-day8-create-offers.postman_collection.json in the Postman
+Desktop Runner at 13:11:43: eight requests, 36 assertions passed, zero failed,
+skipped or execution errors, duration 642 ms. One iteration, No Environment,
+Keep variable values disabled, stored cookies disabled.
+
+The run checked registration of two fictional accounts, business creation
+with three packages (201), anonymous access (401), customer access (403),
+missing and duplicate package types (400), and zero delivery time (400).
+Successful output includes offer/package IDs, numeric prices, expected package
+fields and a null image. Two accounts and one offer remain in the local
+backend. Runtime credentials were not exported. Offer read/update/delete
+routes and frontend verification remain pending.
+
+### Offer and package reads in Postman Desktop
+
+On 7 November 2026 at 14:06:22, ran
+postman/coderr-day8-read-offers.postman_collection.json: 11 requests,
+53 assertions passed, zero failed/skipped assertions or execution errors,
+465 ms. One iteration, No Environment, Keep variable values disabled,
+stored cookies disabled. No runtime credentials were exported.
+
+Verified both roles can read offers and packages, exact response fields,
+owner IDs, numeric minimum price and independently calculated minimum delivery
+time, absolute package links, following the basic package link, anonymous
+401 responses and missing-object 404 responses. The run created two additional
+fictional accounts and one offer with three packages, retained locally.
+The full automated suite previously passed 65 tests after the read endpoints
+were added. Updates, deletion and frontend verification remain pending.
+
+### Partial offer updates in Postman Desktop
+
+On 7 November 2026 at 15:22:23, ran
+postman/coderr-day8-update-offers.postman_collection.json: 12 requests,
+51 assertions passed, zero failures, skips or execution errors; 498 ms.
+One iteration, No Environment, Keep variable values disabled, stored cookies
+disabled. Two fictional accounts and one updated offer remain locally.
+
+Verified changing only the basic price preserves package IDs, other package
+fields and offer fields. Subsequent GET requests confirmed persistence and
+that rejected edits did not change the offer. Foreign customer PATCH returned
+403; anonymous PATCH 401; missing/repeated package types and zero delivery time
+400; an unknown offer returned 404. Staff/foreign-user rejection and transaction
+rollback were additionally covered by the previously executed automated suite,
+which passed all 72 test methods. No runtime credentials were exported.
+Deletion and frontend verification remain pending.
+
+### Offer deletion in Postman Desktop
+
+On 7 November 2026 at 15:57:30, ran
+postman/coderr-day8-delete-offers.postman_collection.json: 12 requests,
+47 assertions passed, zero failed/skipped assertions or execution errors,
+484 ms. One iteration, No Environment, Keep variable values disabled,
+stored cookies disabled. No runtime credentials were exported.
+
+Created a disposable offer, verified foreign customer deletion returns 403
+and anonymous deletion returns 401, then confirmed the offer and packages
+still exist. Owner deletion returned 204 with an empty body. GET for that
+offer and each of its three packages returned 404; repeated DELETE also
+returned 404. The two new fictional accounts remain locally; the disposable
+offer and its packages were removed. The previously executed automated suite
+passed all 76 tests, including preservation of unrelated offers and the owner.
+Frontend verification and the Day 8 commit remain pending.
+
+### Targeted frontend read check – 8 November 2026
+
+Opened offer.html?id=2 in the supplied frontend on port 5501 while signed in
+as the existing fictional Business user mara_anbieter_0411. The test offer's
+title, description and provider username rendered. Switched through all three
+package tabs: Basic showed 100.5 EUR and 7 days, Standard 200 EUR and 5 days,
+Premium 200 EUR and 2 days; unlimited revisions and the Logo feature rendered.
+No frontend source change was made.
+
+The page also displayed errors for currently missing supporting endpoints,
+including reviews. Order counts and reviews are not verified. Frontend creation,
+updates and deletion remain pending. Their list refresh uses GET /api/offers/
+with creator filtering and pagination, scheduled for Days 9–10.
+
+### Day 8 final backend checks – 8 November 2026
+
+All 76 automated test methods passed. Django system checks reported no issues;
+makemigrations --check --dry-run reported no changes; migrate --check and
+git diff --check succeeded. Full frontend CRUD remains deferred until the
+planned offer list/filtering/pagination work.

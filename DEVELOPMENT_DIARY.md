@@ -151,3 +151,44 @@ a protected business endpoint will be tested once that endpoint exists.
 - All 54 automated tests passed, including fourteen offer tests. Migration
   consistency and admin page responses were checked. No offer Postman or
   frontend checks were run because those API routes are not implemented yet.
+
+## Day 8 – In progress, 7 November 2026
+
+- Added the offer creation route, CreateAPIView and business-user permission.
+  The view assigns the authenticated user as owner.
+- Added six API tests; the full suite passed all 60 test methods.
+- Ran eight requests in Postman Desktop: all 36 assertions passed. Creation,
+  anonymous/customer rejection and invalid packages were verified.
+- Offer retrieval, package retrieval, updates, deletion and frontend checks
+  remain open. Day 8 has not been committed or pushed yet.
+
+- Added authenticated offer/package retrieval with separate output serializers.
+  Offer queries calculate independent price/delivery minima and prefetch packages.
+- All 65 automated tests passed after implementing the read endpoints.
+- Verified reads in Postman Desktop: 11 requests, all 53 assertions passed.
+  Marked both read operations complete in the local requirements checklist.
+  Offer updates, deletion and frontend checks remain open.
+
+- Added owner-only PATCH with package selection by offer_type, stable IDs,
+  preservation of omitted fields and transactional updates. All 72 automated
+  test methods passed, including rollback and foreign staff rejection.
+- Ran the partial-update collection in Postman Desktop: 12 requests and all
+  51 assertions passed. Marked PATCH complete in the local checklist.
+  Deletion and frontend verification remain open; Day 8 is not yet committed.
+
+- Enabled owner-only DELETE through RetrieveUpdateDestroyAPIView. All 76
+  automated tests passed, including package cascade and unrelated data checks.
+- Postman Desktop deletion run: 12 requests, all 47 assertions passed. The
+  disposable offer and all three packages returned 404 after owner deletion.
+  Marked DELETE complete locally. Frontend checks and final commit remain open.
+
+- On 8 November, checked offer detail rendering in the supplied frontend and
+  switched all three package tabs. Titles, prices, delivery times and unlimited
+  revisions rendered correctly. Supporting review/order endpoints remain open.
+- The frontend's creation/update/delete dialogs refresh the offer list; that
+  list still requires the filtering/pagination work planned for Days 9–10.
+  No complete frontend CRUD workflow is claimed yet.
+
+- Completed the Day 8 backend checks on 8 November: all 76 tests passed and
+  migrations are consistent. Updated README routes and Postman instructions.
+  Full frontend CRUD remains scheduled after offer list/filtering/pagination.

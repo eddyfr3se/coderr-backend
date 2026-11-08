@@ -95,8 +95,9 @@ Open `http://127.0.0.1:5501/` in your browser. The backend allows frontend
 origins `http://127.0.0.1:5501` and `http://localhost:5501` through CORS.
 Registration, login, own-profile loading/editing and PNG upload were checked
 in the browser for Customer and Business accounts, including a fresh login.
-Offers, orders, reviews and statistics are still pending. Their missing
-endpoints can produce error messages on the supplied frontend pages.
+Offer detail rendering and all three package tabs were also checked. The full
+frontend offer workflow still needs the offer list, filtering and pagination.
+Missing order, review and statistics endpoints can produce frontend errors.
 
 ### Temporary ports
 
@@ -144,7 +145,21 @@ Public auth endpoints do not require a token. Profile endpoints require
 PATCH returns the complete profile. Account type, username and owner cannot
 be changed through this serializer. Customer-list `uploaded_at` currently
 uses the profile creation timestamp, not the time of an image replacement.
-Offers, orders, reviews and statistics API endpoints are not implemented yet.
+Offer endpoints also require token authentication:
+
+- `POST /api/offers/`: Business users create an offer with exactly one basic,
+  standard and premium package; returns 201.
+- `GET /api/offers/{id}/`: authenticated users read an offer with package links,
+  minimum price and minimum delivery time.
+- `GET /api/offerdetails/{id}/`: authenticated users read a complete package.
+- `PATCH /api/offers/{id}/`: only the owner updates selected fields. Identify
+  packages by offer_type; omitted fields and package IDs are preserved.
+- `DELETE /api/offers/{id}/`: only the owner deletes an offer and its packages;
+  returns 204 with no response body.
+
+Offer creation and nested updates use database transactions. Filesystem writes
+are not rolled back by database transactions. Offer images use media/offers/.
+The offer list, filtering, pagination, orders, reviews and statistics are pending.
 
 Applications:
 
@@ -196,8 +211,9 @@ that are cleaned up.
 
 Fourteen tests in `offers_app/tests.py` cover package and offer validation,
 nested creation, server-supplied ownership and database rollback when package
-creation fails. There are **54 automated test methods** in total. Offer API
-routes and their permissions are not implemented yet.
+creation fails. Twenty-two additional offer API/update/delete tests cover
+permissions, output fields, package links, partial updates, rollback and deletion
+cascades. There are **76 automated test methods** in total.
 
 ### Postman desktop tests
 
@@ -231,3 +247,14 @@ to your Postman working directory as `coderr-testbild.gif`, or select that
 fixture in both multipart upload requests. These runs had no failed/skipped
 assertions or execution errors. An earlier unsuccessful upload run and its
 file-reference correction are documented in [TEST_RESULTS.md](TEST_RESULTS.md).
+
+### Offer collections
+
+Import the four `postman/coderr-day8-*-offers.postman_collection.json` files
+into Postman Desktop. Run each collection in order with one iteration and
+No Environment. Disable Keep variable values and enable Run collection without
+using stored cookies. Each collection creates two fictional local accounts;
+create/read/update runs retain their test offer, while the delete run removes
+only its newly created disposable offer and packages. Do not export runtime
+credentials. Recorded results: create 36, read 53, update 51 and delete 47
+passed assertions; see TEST_RESULTS.md for dates and scope.
