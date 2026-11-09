@@ -192,3 +192,18 @@ a protected business endpoint will be tested once that endpoint exists.
 - Completed the Day 8 backend checks on 8 November: all 76 tests passed and
   migrations are consistent. Updated README routes and Postman instructions.
   Full frontend CRUD remains scheduled after offer list/filtering/pagination.
+
+## Day 9 – 8–9 November 2026
+
+- Added public GET /api/offers/ while preserving business-only POST. Added
+  provider output and initial six-item pagination to match the frontend.
+- Installed django-filter 26.2 and added creator, minimum-price and maximum
+  delivery filters. Added DRF title/description search and price/date ordering.
+- All 97 automated tests passed. Postman Desktop filter run passed all 68
+  assertions across 19 requests.
+- On 9 November, checked the supplied frontend: Logo search returned the two
+  matching offers, a three-day delivery limit retained Website Express, and
+  clearing the limit restored both. Descending price ordering put 100 EUR
+  before 50 EUR. An unmatched search showed the empty-results message.
+- Updated README status and test documentation. Detailed pagination and full
+  frontend offer creation/editing/deletion remain scheduled for Day 10.

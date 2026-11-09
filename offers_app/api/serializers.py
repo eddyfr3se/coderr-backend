@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
 
@@ -93,4 +94,19 @@ class OfferRetrieveSerializer(serializers.ModelSerializer):
             'id', 'user', 'title', 'image', 'description', 'created_at',
             'updated_at', 'details', 'min_price', 'min_delivery_time',
         )
+        read_only_fields = fields
+
+
+class OfferUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ('first_name', 'last_name', 'username')
+        read_only_fields = fields
+
+
+class OfferListSerializer(OfferRetrieveSerializer):
+    user_details = OfferUserSerializer(source='user', read_only=True)
+
+    class Meta(OfferRetrieveSerializer.Meta):
+        fields = OfferRetrieveSerializer.Meta.fields + ('user_details',)
         read_only_fields = fields

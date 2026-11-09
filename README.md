@@ -95,8 +95,10 @@ Open `http://127.0.0.1:5501/` in your browser. The backend allows frontend
 origins `http://127.0.0.1:5501` and `http://localhost:5501` through CORS.
 Registration, login, own-profile loading/editing and PNG upload were checked
 in the browser for Customer and Business accounts, including a fresh login.
-Offer detail rendering and all three package tabs were also checked. The full
-frontend offer workflow still needs the offer list, filtering and pagination.
+Offer detail rendering and all three package tabs were also checked. Offer
+search, delivery filtering, descending price ordering and empty search results
+were checked in the browser. Full frontend offer creation/editing/deletion and
+extended pagination checks remain pending.
 Missing order, review and statistics endpoints can produce frontend errors.
 
 ### Temporary ports
@@ -145,8 +147,12 @@ Public auth endpoints do not require a token. Profile endpoints require
 PATCH returns the complete profile. Account type, username and owner cannot
 be changed through this serializer. Customer-list `uploaded_at` currently
 uses the profile creation timestamp, not the time of an image replacement.
-Offer endpoints also require token authentication:
+Offer listing is public; the other offer endpoints require token authentication:
 
+- `GET /api/offers/`: paginated public list with provider details. Supports
+  creator_id, min_price, max_delivery_time, search and ordering; the default
+  page size is six. Search covers title/description; ordering supports
+  min_price and updated_at, with a leading minus for descending order.
 - `POST /api/offers/`: Business users create an offer with exactly one basic,
   standard and premium package; returns 201.
 - `GET /api/offers/{id}/`: authenticated users read an offer with package links,
@@ -159,7 +165,8 @@ Offer endpoints also require token authentication:
 
 Offer creation and nested updates use database transactions. Filesystem writes
 are not rolled back by database transactions. Offer images use media/offers/.
-The offer list, filtering, pagination, orders, reviews and statistics are pending.
+The offer list and filters are implemented. Extended pagination verification,
+orders, reviews and statistics are pending.
 
 Applications:
 
@@ -213,7 +220,9 @@ Fourteen tests in `offers_app/tests.py` cover package and offer validation,
 nested creation, server-supplied ownership and database rollback when package
 creation fails. Twenty-two additional offer API/update/delete tests cover
 permissions, output fields, package links, partial updates, rollback and deletion
-cascades. There are **76 automated test methods** in total.
+cascades. Twenty-one list tests cover filters, search, ordering, public access,
+output fields, basic pagination and query counts. There are **97 automated
+test methods** in total.
 
 ### Postman desktop tests
 
@@ -258,3 +267,9 @@ create/read/update runs retain their test offer, while the delete run removes
 only its newly created disposable offer and packages. Do not export runtime
 credentials. Recorded results: create 36, read 53, update 51 and delete 47
 passed assertions; see TEST_RESULTS.md for dates and scope.
+
+The Day 9 collection, `postman/coderr-day9-filters.postman_collection.json`,
+uses the same Runner settings and creates two fictional accounts and three
+offers which remain locally. Its 19 requests passed all 68 assertions in
+Postman Desktop on 8 November 2026. It checks public listing, numeric filters,
+search, ordering, combinations, empty results and malformed parameters.

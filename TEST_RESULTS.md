@@ -387,3 +387,43 @@ All 76 automated test methods passed. Django system checks reported no issues;
 makemigrations --check --dry-run reported no changes; migrate --check and
 git diff --check succeeded. Full frontend CRUD remains deferred until the
 planned offer list/filtering/pagination work.
+
+## Day 9 – List filters, 8 November 2026
+
+Added public offer listing with provider details, initial six-item pagination,
+django-filter 26.2, creator/minimum-price/maximum-delivery filters and DRF
+search/ordering. Existing dependency versions were preserved. All 97 automated
+test methods passed. Tests include independent aggregate filters, combinations,
+boundaries, malformed numeric input, title/description search and both ordering
+directions. Anonymous list requests used three queries for one and three offers.
+
+Ran postman/coderr-day9-filters.postman_collection.json in Postman Desktop
+12.35.5 at 02:50:58: 19 requests, 68 assertions passed, zero failed/skipped
+assertions or execution errors; 776 ms. One iteration, No Environment,
+Keep variable values disabled, stored cookies disabled.
+
+Verified public creator filtering, provider output, inclusive price/delivery
+bounds, case-insensitive title/description search, ascending/descending price
+and update-time ordering, combined filters, empty values, no matches and 400
+responses for invalid numeric parameters. Two fictional accounts and three
+offers remain locally. No runtime credentials were exported. Extended
+pagination checks and frontend list/filter workflows remain open.
+
+### Frontend list checks – 9 November 2026
+
+Used the supplied frontend on port 5501 while signed in as the fictional
+Business user Mara. Searching Logo returned Logo Starter (50 EUR, seven days)
+and Website Express (100 EUR, two days). Applying the three-day delivery limit
+retained only Website Express; clearing it restored both. Descending price
+ordering placed Website Express first. Searching kein-treffer-0911 displayed
+the expected empty-results message, then restoring Logo restored both offers.
+No frontend source changes were made. The homepage still reports missing
+statistics data; that endpoint is not implemented yet. Extended pagination
+and full frontend offer creation/editing/deletion remain pending for Day 10.
+
+### Day 9 final checks – 9 November 2026
+
+All 97 automated tests passed again (0.900 seconds). Django system checks
+reported no issues; makemigrations --check --dry-run reported no changes.
+migrate --check, pip check and git diff --check succeeded. Local learning
+documents, .env and the development database remain excluded from Git.
