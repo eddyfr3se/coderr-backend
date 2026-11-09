@@ -101,7 +101,9 @@ were checked in the browser. Creating a three-package offer, editing its title
 and Basic price, persistence after reload, deletion and navigation between
 six-item pages were also checked. Offer-image uploads were not part of this
 frontend check.
-Missing order, review and statistics endpoints can produce frontend errors.
+Order creation and order-list rendering were checked in the browser for a
+Customer and the receiving Business. Missing order counters, reviews and
+statistics endpoints can still produce frontend errors.
 
 ### Temporary ports
 
@@ -169,8 +171,20 @@ Offer listing is public; the other offer endpoints require token authentication:
 
 Offer creation and nested updates use database transactions. Filesystem writes
 are not rolled back by database transactions. Offer images use media/offers/.
-The offer list, filters and pagination are implemented and checked. Orders,
-reviews and statistics are pending.
+The offer list, filters and pagination are implemented and checked.
+
+Order endpoints require token authentication:
+
+- `POST /api/orders/`: Customers create an order from offer_detail_id; returns
+  201. The backend assigns the authenticated customer and the package's
+  provider. Missing/malformed IDs return 400; unknown packages return 404.
+- `GET /api/orders/`: unpaginated array containing only orders involving the
+  authenticated user as customer or provider. Staff receive no wider listing.
+
+Orders store package values at creation, so later offer changes or deletion
+do not change existing orders. Deleting a linked customer/provider account
+cascades to its orders. Initial status is in_progress. Order status updates,
+staff deletion, counters, reviews and statistics are pending.
 
 Applications:
 
@@ -230,7 +244,9 @@ output fields, basic pagination and query counts. These areas account for
 
 Eight additional tests in `offers_app/test_pagination.py` cover page sizes,
 navigation, retained query parameters, empty results and invalid parameters.
-The current total is **105 automated test methods**.
+Twenty-six tests in orders_app cover model validation, stored package values,
+serializers, creation permissions, participant visibility and query counts.
+The current total is **131 automated test methods**.
 
 ### Postman desktop tests
 
@@ -289,3 +305,13 @@ if using an equivalent fixture elsewhere). It creates no accounts or offers.
 Run with the same Runner settings. All 68 assertions across 21 requests passed
 in Postman Desktop on 9 November 2026 after correcting four test expectations;
 see TEST_RESULTS.md for the initial failure and rerun.
+
+### Order collection
+
+Import `postman/coderr-day11-orders.postman_collection.json` and use the same
+Runner settings. It creates four fictional accounts, an offer with three
+packages and two orders; all remain locally. It checks order creation, input
+and permission errors, participant-only lists, protected server values and
+unchanged order prices after an offer-price change. The Desktop run on
+9 November 2026 passed all 83 assertions across 24 requests. Runtime passwords
+and tokens must not be exported.

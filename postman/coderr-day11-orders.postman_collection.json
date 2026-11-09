@@ -1,0 +1,939 @@
+{
+  "info": {
+    "name": "Coderr Day 11 - Order Creation and Lists",
+    "description": "Local order creation and participant-only list checks. Creates four fictional accounts, one offer and two orders; these remain locally. Do not export runtime credentials.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8001/api"
+    },
+    {
+      "key": "customer_username",
+      "value": ""
+    },
+    {
+      "key": "customer_email",
+      "value": ""
+    },
+    {
+      "key": "customer_token",
+      "value": ""
+    },
+    {
+      "key": "customer_id",
+      "value": ""
+    },
+    {
+      "key": "business_username",
+      "value": ""
+    },
+    {
+      "key": "business_email",
+      "value": ""
+    },
+    {
+      "key": "business_token",
+      "value": ""
+    },
+    {
+      "key": "business_id",
+      "value": ""
+    },
+    {
+      "key": "other_customer_username",
+      "value": ""
+    },
+    {
+      "key": "other_customer_email",
+      "value": ""
+    },
+    {
+      "key": "other_customer_token",
+      "value": ""
+    },
+    {
+      "key": "other_customer_id",
+      "value": ""
+    },
+    {
+      "key": "other_business_username",
+      "value": ""
+    },
+    {
+      "key": "other_business_email",
+      "value": ""
+    },
+    {
+      "key": "other_business_token",
+      "value": ""
+    },
+    {
+      "key": "other_business_id",
+      "value": ""
+    },
+    {
+      "key": "test_password",
+      "value": ""
+    },
+    {
+      "key": "offer_id",
+      "value": ""
+    },
+    {
+      "key": "package_id",
+      "value": ""
+    },
+    {
+      "key": "order_id",
+      "value": ""
+    },
+    {
+      "key": "second_order_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Register customer",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/registration/",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{customer_username}}\",\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"customer\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now().toString() + '_' + Math.floor(Math.random() * 100000);",
+              "pm.collectionVariables.set('test_password', 'Local!' + pm.variables.replaceIn('{{$randomUUID}}'));",
+              "pm.collectionVariables.set('customer_username', 'tag11_customer_' + suffix);",
+              "pm.collectionVariables.set('customer_email', 'customer_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('customer_token', '');",
+              "pm.collectionVariables.set('business_username', 'tag11_business_' + suffix);",
+              "pm.collectionVariables.set('business_email', 'business_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('business_token', '');",
+              "pm.collectionVariables.set('other_customer_username', 'tag11_other_customer_' + suffix);",
+              "pm.collectionVariables.set('other_customer_email', 'other_customer_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('other_customer_token', '');",
+              "pm.collectionVariables.set('other_business_username', 'tag11_other_business_' + suffix);",
+              "pm.collectionVariables.set('other_business_email', 'other_business_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('other_business_token', '');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Registration fields', () => { pm.expect(data).to.have.all.keys('token','username','email','user_id'); });",
+              "pm.test('Token and user ID', () => { pm.expect(data.token).to.be.a('string').and.not.empty; pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.collectionVariables.set('customer_token', data.token);",
+              "pm.collectionVariables.set('customer_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Register business",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/registration/",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{business_username}}\",\n  \"email\": \"{{business_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"business\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Registration fields', () => { pm.expect(data).to.have.all.keys('token','username','email','user_id'); });",
+              "pm.test('Token and user ID', () => { pm.expect(data.token).to.be.a('string').and.not.empty; pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.collectionVariables.set('business_token', data.token);",
+              "pm.collectionVariables.set('business_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Register other_customer",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/registration/",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{other_customer_username}}\",\n  \"email\": \"{{other_customer_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"customer\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Registration fields', () => { pm.expect(data).to.have.all.keys('token','username','email','user_id'); });",
+              "pm.test('Token and user ID', () => { pm.expect(data.token).to.be.a('string').and.not.empty; pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.collectionVariables.set('other_customer_token', data.token);",
+              "pm.collectionVariables.set('other_customer_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Register other_business",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/registration/",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{other_business_username}}\",\n  \"email\": \"{{other_business_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"business\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Registration fields', () => { pm.expect(data).to.have.all.keys('token','username','email','user_id'); });",
+              "pm.test('Token and user ID', () => { pm.expect(data.token).to.be.a('string').and.not.empty; pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.collectionVariables.set('other_business_token', data.token);",
+              "pm.collectionVariables.set('other_business_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Create test offer",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/offers/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Website Bestellung\",\n  \"description\": \"Lokales Testangebot f\\u00fcr Bestellungen\",\n  \"image\": null,\n  \"details\": [\n    {\n      \"title\": \"basic Website\",\n      \"offer_type\": \"basic\",\n      \"price\": 180.5,\n      \"delivery_time_in_days\": 7,\n      \"features\": [\n        \"Startseite\"\n      ],\n      \"revisions\": 2\n    },\n    {\n      \"title\": \"standard Website\",\n      \"offer_type\": \"standard\",\n      \"price\": 280,\n      \"delivery_time_in_days\": 5,\n      \"features\": [\n        \"Startseite\"\n      ],\n      \"revisions\": 2\n    },\n    {\n      \"title\": \"premium Website\",\n      \"offer_type\": \"premium\",\n      \"price\": 380,\n      \"delivery_time_in_days\": 3,\n      \"features\": [\n        \"Startseite\"\n      ],\n      \"revisions\": 2\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Three packages created', () => { pm.expect(data.details).to.have.lengthOf(3); });",
+              "pm.collectionVariables.set('offer_id', data.id);",
+              "pm.collectionVariables.set('package_id', data.details.find(p => p.offer_type === 'basic').id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Customer starts with no orders",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Empty array', () => { pm.expect(data).to.eql([]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Customer creates order",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"offer_detail_id\": \"{{package_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact order response fields', () => { pm.expect(data).to.have.all.keys('id','customer_user','business_user','title','revisions','delivery_time_in_days','price','features','offer_type','status','created_at','updated_at'); });",
+              "pm.test('Server assigned participants', () => { pm.expect(data.customer_user).to.eql(Number(pm.collectionVariables.get('customer_id'))); pm.expect(data.business_user).to.eql(Number(pm.collectionVariables.get('business_id'))); });",
+              "pm.test('Original package values', () => { pm.expect(data.title).to.eql('basic Website'); pm.expect(data.price).to.eql(180.5); pm.expect(data.revisions).to.eql(2); pm.expect(data.delivery_time_in_days).to.eql(7); pm.expect(data.features).to.eql(['Startseite']); pm.expect(data.offer_type).to.eql('basic'); });",
+              "pm.test('Initial status and timestamps', () => { pm.expect(data.status).to.eql('in_progress'); pm.expect(Number.isNaN(Date.parse(data.created_at))).to.eql(false); pm.expect(Number.isNaN(Date.parse(data.updated_at))).to.eql(false); });",
+              "pm.collectionVariables.set('order_id', data.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Customer reads own order",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Only the created order', () => { pm.expect(data).to.be.an('array').with.lengthOf(1); pm.expect(data[0].id).to.eql(Number(pm.collectionVariables.get('order_id'))); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Provider reads received order",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Only the created order', () => { pm.expect(data).to.be.an('array').with.lengthOf(1); pm.expect(data[0].id).to.eql(Number(pm.collectionVariables.get('order_id'))); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Other customer cannot see order",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{other_customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Empty array', () => { pm.expect(data).to.eql([]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Other provider cannot see order",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{other_business_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Empty array', () => { pm.expect(data).to.eql([]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Business cannot create order",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"offer_detail_id\": \"{{package_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => { pm.response.to.have.status(403); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 Anonymous list rejected",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => { pm.response.to.have.status(401); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 Anonymous creation rejected",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"offer_detail_id\": \"{{package_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => { pm.response.to.have.status(401); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 Missing package ID",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => { pm.response.to.have.status(400); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Package field error', () => { pm.expect(data.offer_detail_id).to.be.an('array').that.is.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 Malformed package ID",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"offer_detail_id\": \"abc\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => { pm.response.to.have.status(400); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Package field error', () => { pm.expect(data.offer_detail_id).to.be.an('array').that.is.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 Unknown package ID",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"offer_detail_id\": 999999\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => { pm.response.to.have.status(404); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 Client cannot replace users price or status",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"offer_detail_id\": \"{{package_id}}\",\n  \"customer_user\": \"{{other_customer_id}}\",\n  \"business_user\": \"{{other_business_id}}\",\n  \"price\": 1,\n  \"status\": \"completed\",\n  \"title\": \"Fake\",\n  \"features\": [\n    \"Fake\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Exact order response fields', () => { pm.expect(data).to.have.all.keys('id','customer_user','business_user','title','revisions','delivery_time_in_days','price','features','offer_type','status','created_at','updated_at'); });",
+              "pm.test('Server assigned participants', () => { pm.expect(data.customer_user).to.eql(Number(pm.collectionVariables.get('customer_id'))); pm.expect(data.business_user).to.eql(Number(pm.collectionVariables.get('business_id'))); });",
+              "pm.test('Original package values', () => { pm.expect(data.title).to.eql('basic Website'); pm.expect(data.price).to.eql(180.5); pm.expect(data.revisions).to.eql(2); pm.expect(data.delivery_time_in_days).to.eql(7); pm.expect(data.features).to.eql(['Startseite']); pm.expect(data.offer_type).to.eql('basic'); });",
+              "pm.test('Initial status and timestamps', () => { pm.expect(data.status).to.eql('in_progress'); pm.expect(Number.isNaN(Date.parse(data.created_at))).to.eql(false); pm.expect(Number.isNaN(Date.parse(data.updated_at))).to.eql(false); });",
+              "pm.collectionVariables.set('second_order_id', data.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 Rejected requests created no extra orders",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Only two successful orders', () => { pm.expect(data.map(o => o.id)).to.eql([Number(pm.collectionVariables.get('order_id')),Number(pm.collectionVariables.get('second_order_id'))]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 Provider changes offered Basic price",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/offers/{{offer_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"details\": [\n    {\n      \"offer_type\": \"basic\",\n      \"price\": 220\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Offered price changed', () => { pm.expect(data.details.find(p => p.offer_type === 'basic').price).to.eql(220); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 Existing orders retain agreed price",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Only two successful orders', () => { pm.expect(data.map(o => o.id)).to.eql([Number(pm.collectionVariables.get('order_id')),Number(pm.collectionVariables.get('second_order_id'))]); });",
+              "pm.test('Stored package data unchanged', () => { data.forEach(o => { pm.expect(o.price).to.eql(180.5); pm.expect(o.title).to.eql('basic Website'); pm.expect(o.status).to.eql('in_progress'); }); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 Provider still sees both orders",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Only two successful orders', () => { pm.expect(data.map(o => o.id)).to.eql([Number(pm.collectionVariables.get('order_id')),Number(pm.collectionVariables.get('second_order_id'))]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 Foreign customer still sees no orders",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{other_customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Empty array', () => { pm.expect(data).to.eql([]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 Foreign provider still sees no orders",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{other_business_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Empty array', () => { pm.expect(data).to.eql([]); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

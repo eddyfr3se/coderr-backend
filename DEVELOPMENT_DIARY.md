@@ -231,3 +231,40 @@ a protected business endpoint will be tested once that endpoint exists.
   disappeared. No offer image was uploaded.
 - Marked all six offer operations complete locally and in the official
   documentation. Updated README and the test report for the Day 10 milestone.
+
+## Day 11 – 9 November 2026
+
+- Added Order with separate customer/business user relations, stored package
+  values, documented status choices and timestamps. Registered it in admin.
+  Package values are independent of subsequent offer changes/deletion; deleting
+  either linked user cascades to their orders, as configured on both relations.
+- Created and applied orders_app.0001_initial. Six model tests passed alongside
+  existing tests: 111 automated test methods passed. API creation, customer-role
+  enforcement and participant-only listing are not implemented or tested yet.
+- Added read-only order output and creation serializers. The input requires
+  offer_detail_id; creation copies package values and derives the provider from
+  its offer. The future view must pass the authenticated customer to save().
+- Eight new serializer tests passed, including output shape, numeric prices,
+  ignored read-only input, missing/malformed/unknown package IDs and stored
+  values surviving package changes/deletion. All 119 tests passed. No order
+  HTTP endpoint or Postman check is implemented at this stage.
+- Connected GET/POST /api/orders/ through ListCreateAPIView. POST requires an
+  authenticated Customer; the view supplies the requesting user to save(). GET
+  returns an unpaginated array filtered to customer/provider participation.
+- Twelve API tests passed, covering creation, input tampering, role/auth errors,
+  invalid/missing packages, visibility, preserved prices, unsupported methods
+  and constant query counts. All 131 project tests passed. Postman verification
+  is pending; neither order operation has been marked complete yet.
+- Postman Desktop run passed all 83 assertions across 24 requests. Checked
+  Customer creation, role/auth/input errors, visibility, ignored ownership/price
+  overrides and original order prices after an offer-price change. Four new
+  fictional accounts, one offer and two orders remain locally. Marked GET/POST
+  orders complete locally and in the official documentation. Frontend checks
+  and the Day 11 commit remain pending.
+- Prepared a local three-package offer for Mara through the ORM, then used
+  Alex's frontend account to place its Basic order for 80 EUR. Confirmed order
+  3 after reload in the Customer profile and in Mara's provider profile.
+  No frontend code changes were needed. The fixture and order remain locally.
+- Completed final Django/migration/whitespace checks and updated the README.
+  Day 11 covers creation and participant lists; status updates and staff
+  deletion remain scheduled for Day 12.

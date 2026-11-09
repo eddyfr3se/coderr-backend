@@ -501,3 +501,90 @@ Marked all six offer operations complete in the local checklist and the
 opened official documentation. The Day 10 milestone covers offer operations,
 pagination and the checked frontend flows; no official Academy PM result
 or complete platform integration is claimed.
+
+## Day 11 – Order model, 9 November 2026
+
+Added six model tests for initial status/timestamps, user reverse relations,
+stored values remaining unchanged after source package edits, preservation of
+orders after offer deletion, invalid field/status validation, unlimited
+revisions, documented statuses and independent JSON-list defaults.
+All 111 automated test methods passed in 0.947 seconds; Django system checks
+reported no issues. Applied orders_app.0001_initial successfully.
+
+The tests construct orders directly through a helper; they do not prove API
+creation, authenticated ownership assignment or role/visibility enforcement.
+Order API endpoints, Postman and frontend order checks remain pending.
+
+### Order serializers – 9 November 2026
+
+Added eight serializer tests. Verified copied package values, server-supplied
+customer/provider ownership, read-only input protection, exact response fields,
+numeric JSON price, write-only offer_detail_id, required/malformed input,
+unknown-package Http404 without order creation, and saved values surviving
+source changes/deletion. The serializer receives customer_user through save();
+HTTP authentication and role enforcement are not covered by these unit tests.
+
+All 14 orders_app tests passed, then all 119 project test methods passed in
+0.944 seconds. Django system checks and git diff --check succeeded.
+Order views, routing, Postman Desktop and frontend order flows remain pending.
+
+### Order creation/list API – 9 November 2026
+
+Added 12 API tests using DRF's APIClient with actual token headers. Verified
+Customer creation (201), documented fields, server-supplied users/price/status,
+Business/profileless-staff rejection (403), anonymous GET/POST (401), missing
+or malformed package IDs (400), unknown packages (404), and no creation after
+rejected requests. Verified participant-only arrays for customers/providers,
+empty arrays for unrelated users including staff, original prices after source
+edits, and unsupported collection methods (405). Listing used two queries
+(token authentication plus orders) with one and three orders.
+
+All 26 orders_app tests passed, then all 131 project test methods passed in
+1.026 seconds. Django system checks and git diff --check succeeded. These
+are automated checks; Postman Desktop and frontend order checks remain pending.
+
+### Order creation/list in Postman Desktop – 9 November 2026
+
+Ran postman/coderr-day11-orders.postman_collection.json in Postman Desktop
+12.35.5 at 15:50:01: 24 requests, all 83 assertions passed, zero failed/skipped
+assertions or execution errors; 799 ms. One iteration, No Environment,
+Keep variable values disabled, stored cookies disabled.
+
+Created four fictional accounts (two Customers, two Businesses), an offer with
+three packages and two orders. Verified Customer creation (201), package values,
+server-assigned users, status/timestamps, participant-only arrays, empty arrays
+for unrelated users, Business rejection (403), anonymous requests (401), missing
+or malformed IDs (400), unknown package (404), ignored ownership/price/status
+input and no orders from rejected requests. After changing the offered Basic
+price from 180.50 to 220 EUR, both orders retained 180.50 EUR.
+
+All four accounts, the offer and both orders remain locally. No runtime
+credentials were exported. Marked GET/POST /api/orders/ complete in the local
+checklist and the opened official documentation. Frontend order creation and
+list rendering remain pending; status updates/deletion are planned for Day 12.
+
+### Frontend order creation and participant views – 9 November 2026
+
+Prepared offer 10, Website für einen Blumenladen, directly through the local
+ORM for existing fictional Business user Mara (ID 14). It has basic/standard/
+premium packages 28/29/30 priced 80/120/160 EUR with delivery times four/three/
+two days, two revisions and the Startseite feature. This fixture preparation
+was not performed through the frontend.
+
+Signed in through the frontend as existing fictional Customer Alex. Searched
+Blumenladen, opened offer 10, checked the Basic confirmation (80 EUR/four days/
+two revisions), and submitted through the local order dialog. The success
+message appeared. Status check opened the Customer profile showing order 3,
+provider Mara, basic Blumenladen, 80 EUR, four days, two revisions and status
+In Bearbeitung. Reloading preserved it. Signed in as Mara and confirmed the
+same order with buyer Alex and the same package values in the provider view.
+No frontend source changes were made. The fixture and order remain locally.
+Reviews, statistics and order counters still produce expected missing-endpoint
+messages; status-changing controls were not tested because their API is pending.
+
+### Day 11 final checks
+
+The previously executed complete suite passed all 131 test methods. Final
+Django system checks reported no issues; makemigrations --check --dry-run
+reported no changes; migrate --check and git diff --check succeeded.
+Creation/list APIs and their checked frontend flow complete the Day 11 scope.
