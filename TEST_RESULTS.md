@@ -427,3 +427,77 @@ All 97 automated tests passed again (0.900 seconds). Django system checks
 reported no issues; makemigrations --check --dry-run reported no changes.
 migrate --check, pip check and git diff --check succeeded. Local learning
 documents, .env and the development database remain excluded from Git.
+
+## Day 10 – Pagination, 9 November 2026
+
+Added eight automated pagination tests for custom page sizes, next/previous
+navigation, complete results without duplication, retained filter/search/order
+parameters, oversized pages, empty sizes/results and invalid parameters.
+The initial run found four failing subcases: page_size abc, 0, -1 and 1.5
+returned 200 because DRF silently used the default size. Added explicit positive
+integer validation; these values now return 400 with a page_size error.
+Missing/empty page_size still uses six. Invalid or nonexistent page numbers
+retain DRF's 404 response. No maximum page size has been introduced.
+
+After the change, all 105 automated test methods passed in 0.932 seconds;
+Django system checks reported no issues and git diff --check succeeded.
+Day 10 pagination checks in Postman Desktop and the frontend are pending.
+
+### Pagination in Postman Desktop – 9 November 2026
+
+Ran postman/coderr-day10-pagination.postman_collection.json in Desktop 12.35.5.
+The first run at 11:15:55 had 64 passed and four failed assertions, zero skipped
+assertions/execution errors, 678 ms. The four failures were an incorrect test
+expectation: page_size errors contain a string, not an array. Status 400 was
+already correct. Corrected these assertions without changing backend behavior.
+
+The rerun at 11:17:05 passed all 68 assertions across 21 GET requests, with
+zero failed/skipped assertions or execution errors, 421 ms. One iteration,
+No Environment, Keep variable values disabled, stored cookies disabled.
+Verified page sizes one/two/twenty/empty, next/previous navigation, last-page
+remainder, total count, retained filters/search/ordering in links, empty results,
+400 for invalid sizes and DRF's 404 for invalid/nonexistent pages.
+
+This collection reads the three retained Day 9 offers for Business ID 24
+(offer IDs 5, 6, 7). It creates or deletes no data and needs no authentication.
+Its fixture dependency is documented in the collection description. Frontend
+pagination and full offer creation/editing/deletion remain pending.
+
+### Frontend creation and pagination – 9 November 2026
+
+The database initially contained six offers, so no second default-size page
+existed. Signed in as the existing fictional Business user Mara, created
+Website für ein Café through the own-profile form with three packages:
+basic 180 EUR/seven days/two revisions, standard 280 EUR/five days/three
+revisions, premium 380 EUR/three days/five revisions; each has one feature.
+The success message appeared and the offer rendered in the owner's list.
+No image was uploaded. Missing supporting review endpoints still produce
+profile-page errors and are outside this check.
+
+Opened the unfiltered public offer list: page 1 showed the six existing offers.
+Clicked page 2: only the newly created offer appeared, showing 180 EUR and
+three days, with page 2 highlighted and the next arrow disabled. Clicking the
+previous arrow restored the original six offers on page 1. The new offer
+remains locally. No frontend source was changed. Frontend editing/deletion
+and their list-refresh behavior remain pending.
+
+### Frontend editing and deletion – 9 November 2026
+
+In Mara's own-profile editor, changed offer 8 to Website für ein Café mit
+Speisekarte and changed its Basic price from 180 to 190 EUR. The success
+message and owner list reflected both changes; a page reload preserved them.
+Read-only database inspection confirmed package IDs 22, 23 and 24 remained
+unchanged. Standard/Premium prices remained 280/380 EUR and delivery times
+remained seven/five/three days.
+
+Deleted this disposable offer through the frontend editor. The success message
+appeared and the owner's list became empty, including after reload. Read-only
+database inspection confirmed offer 8 and packages 22/23/24 no longer exist,
+while the six original offers (1, 2, 3, 5, 6, 7) remain. The public list then
+rendered those six offers with only page 1. No offer image was uploaded and no
+frontend source was changed. Supporting reviews/orders/statistics remain open.
+
+Marked all six offer operations complete in the local checklist and the
+opened official documentation. The Day 10 milestone covers offer operations,
+pagination and the checked frontend flows; no official Academy PM result
+or complete platform integration is claimed.

@@ -207,3 +207,27 @@ a protected business endpoint will be tested once that endpoint exists.
   before 50 EUR. An unmatched search showed the empty-results message.
 - Updated README status and test documentation. Detailed pagination and full
   frontend offer creation/editing/deletion remain scheduled for Day 10.
+
+## Day 10 – 9 November 2026
+
+- Reviewed the official offer-list requirements and DRF pagination behavior.
+  Added eight pagination tests; the first run exposed silent fallback for four
+  invalid page_size values. Added positive integer validation returning 400.
+- All 105 automated tests now pass. Navigation preserves filters/search/order
+  and page size; invalid page numbers retain DRF's 404 response. Postman Desktop,
+  frontend pagination and full frontend offer workflows remain pending.
+- Ran the pagination collection in Postman Desktop against retained Day 9
+  fixtures. The first run found four incorrect error-shape assertions; corrected
+  string expectations and reran. All 68 assertions across 21 requests passed.
+  No test data was created or deleted. Frontend checks remain pending.
+- Created Website für ein Café with three packages through Mara's own-profile
+  form, bringing the local total from six offers to seven. The public frontend
+  displayed six on page 1 and only the new offer on page 2; the previous arrow
+  restored page 1. No frontend code changed. Editing/deletion remain pending.
+- Edited the Café title and Basic price in the frontend, then reloaded to
+  confirm persistence. Package IDs and the other package values were retained.
+  Deleted the disposable offer through the frontend; its three packages were
+  removed, the original six offers remained, and the second public page
+  disappeared. No offer image was uploaded.
+- Marked all six offer operations complete locally and in the official
+  documentation. Updated README and the test report for the Day 10 milestone.

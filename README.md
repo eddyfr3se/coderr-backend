@@ -97,8 +97,10 @@ Registration, login, own-profile loading/editing and PNG upload were checked
 in the browser for Customer and Business accounts, including a fresh login.
 Offer detail rendering and all three package tabs were also checked. Offer
 search, delivery filtering, descending price ordering and empty search results
-were checked in the browser. Full frontend offer creation/editing/deletion and
-extended pagination checks remain pending.
+were checked in the browser. Creating a three-package offer, editing its title
+and Basic price, persistence after reload, deletion and navigation between
+six-item pages were also checked. Offer-image uploads were not part of this
+frontend check.
 Missing order, review and statistics endpoints can produce frontend errors.
 
 ### Temporary ports
@@ -151,7 +153,9 @@ Offer listing is public; the other offer endpoints require token authentication:
 
 - `GET /api/offers/`: paginated public list with provider details. Supports
   creator_id, min_price, max_delivery_time, search and ordering; the default
-  page size is six. Search covers title/description; ordering supports
+  page size is six. Use page and a positive integer page_size for navigation;
+  invalid sizes return 400, invalid/nonexistent pages return DRF's 404.
+  Missing/empty page_size uses six. Search covers title/description; ordering supports
   min_price and updated_at, with a leading minus for descending order.
 - `POST /api/offers/`: Business users create an offer with exactly one basic,
   standard and premium package; returns 201.
@@ -165,8 +169,8 @@ Offer listing is public; the other offer endpoints require token authentication:
 
 Offer creation and nested updates use database transactions. Filesystem writes
 are not rolled back by database transactions. Offer images use media/offers/.
-The offer list and filters are implemented. Extended pagination verification,
-orders, reviews and statistics are pending.
+The offer list, filters and pagination are implemented and checked. Orders,
+reviews and statistics are pending.
 
 Applications:
 
@@ -221,8 +225,12 @@ nested creation, server-supplied ownership and database rollback when package
 creation fails. Twenty-two additional offer API/update/delete tests cover
 permissions, output fields, package links, partial updates, rollback and deletion
 cascades. Twenty-one list tests cover filters, search, ordering, public access,
-output fields, basic pagination and query counts. There are **97 automated
-test methods** in total.
+output fields, basic pagination and query counts. These areas account for
+97 automated test methods.
+
+Eight additional tests in `offers_app/test_pagination.py` cover page sizes,
+navigation, retained query parameters, empty results and invalid parameters.
+The current total is **105 automated test methods**.
 
 ### Postman desktop tests
 
@@ -273,3 +281,11 @@ uses the same Runner settings and creates two fictional accounts and three
 offers which remain locally. Its 19 requests passed all 68 assertions in
 Postman Desktop on 8 November 2026. It checks public listing, numeric filters,
 search, ordering, combinations, empty results and malformed parameters.
+
+The read-only Day 10 collection,
+`postman/coderr-day10-pagination.postman_collection.json`, requires the retained
+Day 9 fixtures: three offers belonging to Business ID 24 (adjust business_id
+if using an equivalent fixture elsewhere). It creates no accounts or offers.
+Run with the same Runner settings. All 68 assertions across 21 requests passed
+in Postman Desktop on 9 November 2026 after correcting four test expectations;
+see TEST_RESULTS.md for the initial failure and rerun.

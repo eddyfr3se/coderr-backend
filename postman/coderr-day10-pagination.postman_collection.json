@@ -1,0 +1,494 @@
+{
+  "info": {
+    "name": "Coderr Day 10 - Offer Pagination",
+    "description": "Read-only pagination checks using the three retained Day 9 offers for business_id 24. Run with No Environment and without stored cookies. No accounts or offers are created.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8001/api"
+    },
+    {
+      "key": "business_id",
+      "value": "24"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Retained offers and default page",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Three retained offers', () => { pm.expect(data.count).to.eql(3); pm.expect(data.results.map(o => o.title)).to.eql(['Logo Starter','Website Express','Website Komplett']); });",
+              "pm.test('Pagination envelope and no links', () => { pm.expect(data).to.have.all.keys('count','next','previous','results'); pm.expect(data.next).to.eql(null); pm.expect(data.previous).to.eql(null); });",
+              "['cheap','fast','slow'].forEach((name,index) => pm.collectionVariables.set(name + '_id', data.results[index].id));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 One item on first page",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=1",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('First offer and total', () => { pm.expect(data.count).to.eql(3); pm.expect(data.results.map(o => o.id)).to.eql([Number(pm.collectionVariables.get('cheap_id'))]); });",
+              "pm.test('First page links', () => { pm.expect(data.previous).to.eql(null); pm.expect(data.next).to.include('page=2'); pm.expect(data.next).to.include('page_size=1'); });",
+              "pm.collectionVariables.set('next_url', data.next);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Follow next link to middle page",
+      "request": {
+        "method": "GET",
+        "url": "{{next_url}}",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Middle offer and total', () => { pm.expect(data.count).to.eql(3); pm.expect(data.results.map(o => o.id)).to.eql([Number(pm.collectionVariables.get('fast_id'))]); });",
+              "pm.test('Middle page links', () => { pm.expect(data.next).to.include('page=3'); pm.expect(data.previous).to.be.a('string'); });",
+              "pm.collectionVariables.set('next_url', data.next);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Follow next link to last page",
+      "request": {
+        "method": "GET",
+        "url": "{{next_url}}",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Last offer and total', () => { pm.expect(data.count).to.eql(3); pm.expect(data.results.map(o => o.id)).to.eql([Number(pm.collectionVariables.get('slow_id'))]); });",
+              "pm.test('Last page links', () => { pm.expect(data.next).to.eql(null); pm.expect(data.previous).to.include('page=2'); });",
+              "pm.collectionVariables.set('previous_url', data.previous);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Follow previous link",
+      "request": {
+        "method": "GET",
+        "url": "{{previous_url}}",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Back to middle offer', () => { pm.expect(data.results.map(o => o.id)).to.eql([Number(pm.collectionVariables.get('fast_id'))]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Two items per page",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=2",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('First two offers', () => { pm.expect(data.count).to.eql(3); pm.expect(data.results.map(o => o.id)).to.eql([Number(pm.collectionVariables.get('cheap_id')),Number(pm.collectionVariables.get('fast_id'))]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Remainder on second page",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=2&page=2",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('One remaining offer', () => { pm.expect(data.results.map(o => o.id)).to.eql([Number(pm.collectionVariables.get('slow_id'))]); pm.expect(data.next).to.eql(null); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Large page size",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=20",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('All three fit one page', () => { pm.expect(data.results).to.have.lengthOf(3); pm.expect(data.next).to.eql(null); pm.expect(data.previous).to.eql(null); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Empty page size uses default",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Default response', () => { pm.expect(data.count).to.eql(3); pm.expect(data.results).to.have.lengthOf(3); pm.expect(data.next).to.eql(null); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Combined filters before pagination",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&search=Logo&min_price=50&max_delivery_time=7&ordering=-min_price&page_size=1",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Two matches and highest price first', () => { pm.expect(data.count).to.eql(2); pm.expect(data.results.map(o => o.id)).to.eql([Number(pm.collectionVariables.get('fast_id'))]); });",
+              "pm.test('Next link retains all parameters', () => { ['creator_id=' + pm.collectionVariables.get('business_id'),'search=Logo','min_price=50','max_delivery_time=7','ordering=-min_price','page_size=1','page=2'].forEach(p => pm.expect(data.next).to.include(p)); });",
+              "pm.collectionVariables.set('filtered_next_url', data.next);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Follow filtered next link",
+      "request": {
+        "method": "GET",
+        "url": "{{filtered_next_url}}",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Filtered last result', () => { pm.expect(data.count).to.eql(2); pm.expect(data.results.map(o => o.id)).to.eql([Number(pm.collectionVariables.get('cheap_id'))]); pm.expect(data.next).to.eql(null); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Empty filtered result",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&search=kein-treffer-0911&page_size=2",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Empty pagination envelope', () => { pm.expect(data).to.eql({count:0,next:null,previous:null,results:[]}); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 Reject page size abc",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=abc",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Field error', () => { pm.expect(data.page_size).to.eql('Enter a positive integer.'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 Reject page size 0",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=0",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Field error', () => { pm.expect(data.page_size).to.eql('Enter a positive integer.'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 Reject page size -1",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=-1",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Field error', () => { pm.expect(data.page_size).to.eql('Enter a positive integer.'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 Reject page size 1.5",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=1.5",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Field error', () => { pm.expect(data.page_size).to.eql('Enter a positive integer.'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 Reject page abc",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=1&page=abc",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Page error', () => { pm.expect(data.detail).to.be.a('string').that.is.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 Reject page 0",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=1&page=0",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Page error', () => { pm.expect(data.detail).to.be.a('string').that.is.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 Reject page -1",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=1&page=-1",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Page error', () => { pm.expect(data.detail).to.be.a('string').that.is.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 Reject page 1.5",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=1&page=1.5",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Page error', () => { pm.expect(data.detail).to.be.a('string').that.is.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 Reject page 4",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/?creator_id={{business_id}}&page_size=1&page=4",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('JSON response', () => pm.response.to.be.json);",
+              "const data = pm.response.json();",
+              "pm.test('Page error', () => { pm.expect(data.detail).to.be.a('string').that.is.not.empty; });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
