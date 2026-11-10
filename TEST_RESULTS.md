@@ -588,3 +588,71 @@ The previously executed complete suite passed all 131 test methods. Final
 Django system checks reported no issues; makemigrations --check --dry-run
 reported no changes; migrate --check and git diff --check succeeded.
 Creation/list APIs and their checked frontend flow complete the Day 11 scope.
+
+## Day 12 – Order status/deletion API, 10 November 2026
+
+Added 14 API tests with actual token authentication. Verified assigned Business
+status updates for completed/cancelled/in_progress, complete response fields,
+preserved agreement data and creation timestamp, changed update timestamp,
+Customer/foreign-Business/profileless-staff rejection, Business-profile
+requirement, anonymous 401, invalid/empty status and forbidden extra fields
+returning 400 without applying the status, and authorized missing-object 404.
+
+Verified staff-only deletion with empty 204, repeated deletion 404, rejection
+of nonstaff participants/foreign Business users, preservation of other orders,
+the offer and both users, staff deletion even with a Customer profile, and
+405 for GET/PUT/POST on the order-detail route.
+
+All 40 orders_app tests passed; the full suite then passed all 145 test methods
+in 1.611 seconds. Django system checks and git diff --check succeeded.
+PATCH provider ownership is the narrower interpretation of the documented
+Business requirement. No Postman Desktop or frontend status check has yet
+been performed for Day 12; the two operations remain unchecked.
+
+### Order status/deletion in Postman Desktop – 10 November 2026
+
+Ran postman/coderr-day12-orders.postman_collection.json in Desktop 12.35.5
+at 16:07:59: 34 requests, all 111 assertions passed, zero failed/skipped
+assertions or execution errors; 1.227 seconds. One iteration, No Environment,
+Keep variable values disabled, stored cookies disabled.
+
+Prepared a dedicated local staff fixture (user 29, unusable password) and a
+temporary token. The CSV iteration-data selector required a paid plan, so no
+CSV-driven run was performed and no plan change was made. Supplied staff_token
+temporarily as a collection variable instead. After the successful run, cleared
+the variable in Postman and verified it empty, revoked the token, disabled the
+staff fixture and removed its staff flag, and deleted the temporary CSV. The
+repository collection contains no runtime credential values.
+
+The run created four fictional API accounts, one three-package offer and two
+orders. Verified all three status values, unchanged agreement fields, malformed/
+empty status, forbidden price/customer fields, empty PATCH, Customer/foreign
+Business/staff rejection for PATCH, anonymous 401 and unknown-order 404.
+Verified Customer/provider/foreign-provider DELETE rejection, staff deletion
+with empty 204, repeat/missing 404, and preserved control order, offer and
+package. Only disposable order 4 was deleted; control order 5 remains alongside
+all previous orders. The four API accounts and test offer remain locally.
+
+Marked PATCH/DELETE orders complete locally and in the opened documentation.
+Frontend status changes and the Day 12 commit remain pending.
+
+### Frontend status change – 10 November 2026
+
+Started the supplied frontend on its existing port 5501. As existing fictional
+provider Mara, changed local Blumenladen order 3 from In Bearbeitung to
+Abgeschlossen through the status dropdown. Reloading preserved the status.
+Signed in as existing Customer Alex and confirmed order 3 showed Abgeschlossen,
+provider Mara, basic Blumenladen, 80 EUR, four days, two revisions and Startseite.
+A read-only database comparison against the saved pre-edit order confirmed
+only status and updated_at changed. No frontend source changes were made.
+The order remains completed locally. Missing review/statistics/counter endpoints
+still produce supporting-data errors; they are outside the Day 12 scope.
+
+### Day 12 final checks
+
+The previously executed complete suite passed all 145 test methods. Final
+Django system checks reported no issues; makemigrations --check --dry-run
+reported no changes. migrate --check and git diff --check succeeded. The local
+Staff fixture is disabled, its staff flag removed and token revoked; the
+Postman staff_token variable was verified empty after the run. No runtime
+credential value is stored in the repository collection.

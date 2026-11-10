@@ -1,0 +1,1323 @@
+{
+  "info": {
+    "name": "Coderr Day 12 - Order Status and Deletion",
+    "description": "Creates four fictional accounts, one offer and two test orders. Supply a local test-only staff_token temporarily before the run, then clear it and revoke it. Never export credentials. Deletes only the new disposable order and keeps the control order.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8001/api"
+    },
+    {
+      "key": "customer_username",
+      "value": ""
+    },
+    {
+      "key": "customer_email",
+      "value": ""
+    },
+    {
+      "key": "customer_token",
+      "value": ""
+    },
+    {
+      "key": "customer_id",
+      "value": ""
+    },
+    {
+      "key": "business_username",
+      "value": ""
+    },
+    {
+      "key": "business_email",
+      "value": ""
+    },
+    {
+      "key": "business_token",
+      "value": ""
+    },
+    {
+      "key": "business_id",
+      "value": ""
+    },
+    {
+      "key": "other_customer_username",
+      "value": ""
+    },
+    {
+      "key": "other_customer_email",
+      "value": ""
+    },
+    {
+      "key": "other_customer_token",
+      "value": ""
+    },
+    {
+      "key": "other_customer_id",
+      "value": ""
+    },
+    {
+      "key": "other_business_username",
+      "value": ""
+    },
+    {
+      "key": "other_business_email",
+      "value": ""
+    },
+    {
+      "key": "other_business_token",
+      "value": ""
+    },
+    {
+      "key": "other_business_id",
+      "value": ""
+    },
+    {
+      "key": "test_password",
+      "value": ""
+    },
+    {
+      "key": "offer_id",
+      "value": ""
+    },
+    {
+      "key": "package_id",
+      "value": ""
+    },
+    {
+      "key": "order_id",
+      "value": ""
+    },
+    {
+      "key": "second_order_id",
+      "value": ""
+    },
+    {
+      "key": "staff_token",
+      "value": ""
+    },
+    {
+      "key": "order_snapshot",
+      "value": ""
+    },
+    {
+      "key": "control_order_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Register customer",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/registration/",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{customer_username}}\",\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"customer\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now().toString() + '_' + Math.floor(Math.random() * 100000);",
+              "pm.collectionVariables.set('test_password', 'Local!' + pm.variables.replaceIn('{{$randomUUID}}'));",
+              "pm.collectionVariables.set('customer_username', 'tag12_customer_' + suffix);",
+              "pm.collectionVariables.set('customer_email', 'customer_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('customer_token', '');",
+              "pm.collectionVariables.set('business_username', 'tag12_business_' + suffix);",
+              "pm.collectionVariables.set('business_email', 'business_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('business_token', '');",
+              "pm.collectionVariables.set('other_customer_username', 'tag12_other_customer_' + suffix);",
+              "pm.collectionVariables.set('other_customer_email', 'other_customer_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('other_customer_token', '');",
+              "pm.collectionVariables.set('other_business_username', 'tag12_other_business_' + suffix);",
+              "pm.collectionVariables.set('other_business_email', 'other_business_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('other_business_token', '');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Registration fields', () => { pm.expect(data).to.have.all.keys('token','username','email','user_id'); });",
+              "pm.test('Token and user ID', () => { pm.expect(data.token).to.be.a('string').and.not.empty; pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.collectionVariables.set('customer_token', data.token);",
+              "pm.collectionVariables.set('customer_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Register business",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/registration/",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{business_username}}\",\n  \"email\": \"{{business_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"business\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Registration fields', () => { pm.expect(data).to.have.all.keys('token','username','email','user_id'); });",
+              "pm.test('Token and user ID', () => { pm.expect(data.token).to.be.a('string').and.not.empty; pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.collectionVariables.set('business_token', data.token);",
+              "pm.collectionVariables.set('business_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Register other_customer",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/registration/",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{other_customer_username}}\",\n  \"email\": \"{{other_customer_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"customer\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Registration fields', () => { pm.expect(data).to.have.all.keys('token','username','email','user_id'); });",
+              "pm.test('Token and user ID', () => { pm.expect(data.token).to.be.a('string').and.not.empty; pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.collectionVariables.set('other_customer_token', data.token);",
+              "pm.collectionVariables.set('other_customer_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Register other_business",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/registration/",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{other_business_username}}\",\n  \"email\": \"{{other_business_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"business\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Registration fields', () => { pm.expect(data).to.have.all.keys('token','username','email','user_id'); });",
+              "pm.test('Token and user ID', () => { pm.expect(data.token).to.be.a('string').and.not.empty; pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.collectionVariables.set('other_business_token', data.token);",
+              "pm.collectionVariables.set('other_business_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Create test offer",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/offers/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Statuspr\\u00fcfung Website\",\n  \"description\": \"Lokales Testangebot f\\u00fcr Bestellungen\",\n  \"image\": null,\n  \"details\": [\n    {\n      \"title\": \"basic Website\",\n      \"offer_type\": \"basic\",\n      \"price\": 180.5,\n      \"delivery_time_in_days\": 7,\n      \"features\": [\n        \"Startseite\"\n      ],\n      \"revisions\": 2\n    },\n    {\n      \"title\": \"standard Website\",\n      \"offer_type\": \"standard\",\n      \"price\": 280,\n      \"delivery_time_in_days\": 5,\n      \"features\": [\n        \"Startseite\"\n      ],\n      \"revisions\": 2\n    },\n    {\n      \"title\": \"premium Website\",\n      \"offer_type\": \"premium\",\n      \"price\": 380,\n      \"delivery_time_in_days\": 3,\n      \"features\": [\n        \"Startseite\"\n      ],\n      \"revisions\": 2\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Three packages created', () => { pm.expect(data.details).to.have.lengthOf(3); });",
+              "pm.collectionVariables.set('offer_id', data.id);",
+              "pm.collectionVariables.set('package_id', data.details.find(p => p.offer_type === 'basic').id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Disposable order",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"offer_detail_id\": \"{{package_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Initial order data', () => { pm.expect(data.status).to.eql('in_progress'); pm.expect(data.price).to.eql(180.5); });",
+              "pm.collectionVariables.set('order_id', data.id);",
+              "pm.collectionVariables.set('order_snapshot', JSON.stringify(data));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Control order",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"offer_detail_id\": \"{{package_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Initial order data', () => { pm.expect(data.status).to.eql('in_progress'); pm.expect(data.price).to.eql(180.5); });",
+              "pm.collectionVariables.set('control_order_id', data.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Provider sets completed",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Expected status', () => { pm.expect(data.status).to.eql('completed'); });",
+              "pm.test('Agreement fields unchanged', () => { const before=JSON.parse(pm.collectionVariables.get('order_snapshot')); pm.expect(Object.keys(data).sort()).to.eql(Object.keys(before).sort()); Object.keys(before).filter(k => !['status','updated_at'].includes(k)).forEach(k => pm.expect(data[k],k).to.eql(before[k])); });",
+              "pm.test('Update timestamp', () => { pm.expect(Date.parse(data.updated_at)).to.be.at.least(Date.parse(JSON.parse(pm.collectionVariables.get('order_snapshot')).updated_at)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Provider sets cancelled",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"cancelled\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Expected status', () => { pm.expect(data.status).to.eql('cancelled'); });",
+              "pm.test('Agreement fields unchanged', () => { const before=JSON.parse(pm.collectionVariables.get('order_snapshot')); pm.expect(Object.keys(data).sort()).to.eql(Object.keys(before).sort()); Object.keys(before).filter(k => !['status','updated_at'].includes(k)).forEach(k => pm.expect(data[k],k).to.eql(before[k])); });",
+              "pm.test('Update timestamp', () => { pm.expect(Date.parse(data.updated_at)).to.be.at.least(Date.parse(JSON.parse(pm.collectionVariables.get('order_snapshot')).updated_at)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Provider sets in_progress",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"in_progress\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Expected status', () => { pm.expect(data.status).to.eql('in_progress'); });",
+              "pm.test('Agreement fields unchanged', () => { const before=JSON.parse(pm.collectionVariables.get('order_snapshot')); pm.expect(Object.keys(data).sort()).to.eql(Object.keys(before).sort()); Object.keys(before).filter(k => !['status','updated_at'].includes(k)).forEach(k => pm.expect(data[k],k).to.eql(before[k])); });",
+              "pm.test('Update timestamp', () => { pm.expect(Date.parse(data.updated_at)).to.be.at.least(Date.parse(JSON.parse(pm.collectionVariables.get('order_snapshot')).updated_at)); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Reject invalid status unknown",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"unknown\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => { pm.response.to.have.status(400); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Status error', () => { pm.expect(data).to.have.property('status'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Reject invalid status ",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => { pm.response.to.have.status(400); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Status error', () => { pm.expect(data).to.have.property('status'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 Reject invalid status None",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => { pm.response.to.have.status(400); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Status error', () => { pm.expect(data).to.have.property('status'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 Reject price with status",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\",\n  \"price\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => { pm.response.to.have.status(400); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Forbidden field error', () => { pm.expect(data).to.have.property('price'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 Reject customer replacement",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\",\n  \"customer_user\": \"{{other_customer_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => { pm.response.to.have.status(400); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Forbidden field error', () => { pm.expect(data).to.have.property('customer_user'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 Reject empty PATCH",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 400', () => { pm.response.to.have.status(400); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Status required', () => { pm.expect(data).to.have.property('status'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 customer cannot change status",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => { pm.response.to.have.status(403); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 other_business cannot change status",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{other_business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => { pm.response.to.have.status(403); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 staff cannot change status",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{staff_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => { pm.response.to.have.status(403); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 Anonymous status update rejected",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => { pm.response.to.have.status(401); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 Unknown order status update",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/orders/999999/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => { pm.response.to.have.status(404); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 Rejected edits kept agreement and status",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Disposable order unchanged', () => { const order=data.find(o => o.id===Number(pm.collectionVariables.get('order_id'))); const before=JSON.parse(pm.collectionVariables.get('order_snapshot')); Object.keys(before).filter(k=>k!=='updated_at').forEach(k=>pm.expect(order[k],k).to.eql(before[k])); pm.expect(data).to.have.lengthOf(2); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 customer cannot delete",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => { pm.response.to.have.status(403); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 business cannot delete",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => { pm.response.to.have.status(403); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "25 other_business cannot delete",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{other_business_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 403', () => { pm.response.to.have.status(403); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "26 Anonymous deletion rejected",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => { pm.response.to.have.status(401); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "27 Rejected deletes kept both orders",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Both orders remain', () => { pm.expect(data.map(o=>o.id)).to.have.members([Number(pm.collectionVariables.get('order_id')),Number(pm.collectionVariables.get('control_order_id'))]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "28 Staff deletes disposable order",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{staff_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 204', () => { pm.response.to.have.status(204); });",
+              "pm.test('Empty response body', () => { pm.expect(pm.response.text()).to.eql(''); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "29 Only control order remains",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Only control order', () => { pm.expect(data.map(o=>o.id)).to.eql([Number(pm.collectionVariables.get('control_order_id'))]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "30 Provider sees control order",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/orders/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Only control order', () => { pm.expect(data.map(o=>o.id)).to.eql([Number(pm.collectionVariables.get('control_order_id'))]); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "31 Repeated staff deletion returns 404",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/orders/{{order_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{staff_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => { pm.response.to.have.status(404); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "32 Unknown staff deletion returns 404",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/orders/999999/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{staff_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => { pm.response.to.have.status(404); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Error detail', () => { pm.expect(data.detail).to.be.a('string').and.not.empty; });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "33 Offer is preserved",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offers/{{offer_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{business_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Offer and package links remain', () => { pm.expect(data.id).to.eql(Number(pm.collectionVariables.get('offer_id'))); pm.expect(data.details).to.have.lengthOf(3); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "34 Package is preserved",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/offerdetails/{{package_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => { pm.response.to.have.status(200); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Package price unchanged', () => { pm.expect(data.price).to.eql(180.5); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

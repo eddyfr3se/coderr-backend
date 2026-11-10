@@ -102,7 +102,9 @@ and Basic price, persistence after reload, deletion and navigation between
 six-item pages were also checked. Offer-image uploads were not part of this
 frontend check.
 Order creation and order-list rendering were checked in the browser for a
-Customer and the receiving Business. Missing order counters, reviews and
+Customer and the receiving Business. A provider status change to completed
+persisted after reload and appeared in the Customer profile with unchanged
+package values. Missing order counters, reviews and
 statistics endpoints can still produce frontend errors.
 
 ### Temporary ports
@@ -180,11 +182,16 @@ Order endpoints require token authentication:
   provider. Missing/malformed IDs return 400; unknown packages return 404.
 - `GET /api/orders/`: unpaginated array containing only orders involving the
   authenticated user as customer or provider. Staff receive no wider listing.
+- `PATCH /api/orders/{id}/`: the assigned Business user changes only status to
+  in_progress, completed or cancelled. Missing/invalid status and extra fields
+  return 400. Returns the complete updated order.
+- `DELETE /api/orders/{id}/`: Staff only; returns 204 with an empty body.
 
 Orders store package values at creation, so later offer changes or deletion
 do not change existing orders. Deleting a linked customer/provider account
-cascades to its orders. Initial status is in_progress. Order status updates,
-staff deletion, counters, reviews and statistics are pending.
+cascades to its orders. Initial status is in_progress. The PATCH documentation
+specifies Business access; this implementation also requires provider ownership
+to prevent changes to foreign orders. Counters, reviews and statistics are pending.
 
 Applications:
 
@@ -244,9 +251,11 @@ output fields, basic pagination and query counts. These areas account for
 
 Eight additional tests in `offers_app/test_pagination.py` cover page sizes,
 navigation, retained query parameters, empty results and invalid parameters.
-Twenty-six tests in orders_app cover model validation, stored package values,
+Forty tests in orders_app cover model validation, stored package values,
 serializers, creation permissions, participant visibility and query counts.
-The current total is **131 automated test methods**.
+They also cover status validation, object permissions, protected fields,
+staff-only deletion and preservation of related records.
+The current total is **145 automated test methods**.
 
 ### Postman desktop tests
 
@@ -315,3 +324,13 @@ and permission errors, participant-only lists, protected server values and
 unchanged order prices after an offer-price change. The Desktop run on
 9 November 2026 passed all 83 assertions across 24 requests. Runtime passwords
 and tokens must not be exported.
+
+The Day 12 collection, `postman/coderr-day12-orders.postman_collection.json`,
+uses the same Runner settings. Supply a token from a dedicated local Staff
+test account temporarily as staff_token before running; clear the variable
+and revoke the token afterwards. The collection contains no saved credentials.
+Its 34 requests passed all 111 assertions in Postman Desktop on 10 November
+2026. It creates four fictional API accounts, an offer and two orders, deletes
+only its new disposable order, and retains the control order and offer.
+Status changes, role/ownership rejection, forbidden fields, empty 204 deletion
+and preservation of the control data are checked.

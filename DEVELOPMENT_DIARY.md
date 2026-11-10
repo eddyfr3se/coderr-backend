@@ -268,3 +268,29 @@ a protected business endpoint will be tested once that endpoint exists.
 - Completed final Django/migration/whitespace checks and updated the README.
   Day 11 covers creation and participant lists; status updates and staff
   deletion remain scheduled for Day 12.
+
+## Day 12 – 10 November 2026
+
+- Added PATCH/DELETE /api/orders/{id}/. PATCH requires both a Business profile
+  and assignment as the order's provider; DELETE requires is_staff. The
+  documentation specifies Business for PATCH without explicitly describing
+  foreign providers. Applied the narrower ownership rule to prevent foreign
+  order changes; no mentor confirmation of that interpretation is claimed.
+- Added a status-only serializer: required documented status, full output and
+  400 for extra fields. Added 14 API tests; all 145 project tests passed.
+  Postman Desktop, frontend status changes and the Day 12 commit are pending.
+- Postman Desktop passed all 111 assertions across 34 requests. Verified role
+  and object permissions, status/field validation, unchanged agreement values,
+  staff-only empty-204 deletion and preservation of the control order/offer.
+- Supplied a temporary local staff token as a collection variable because
+  CSV iteration data required a paid plan. Cleared/revoked the token afterwards,
+  disabled the staff fixture and removed the temporary data file. No credentials
+  were exported to the repository. Marked PATCH/DELETE complete locally and in
+  the official documentation. Frontend status checks remain pending.
+- In the supplied frontend, Mara changed existing local order 3 from
+  in_progress to completed. Reloading preserved it. Alex's Customer profile
+  showed the same completed order with unchanged 80 EUR price, four days,
+  two revisions and Startseite feature. Read-only before/after comparison
+  confirmed only status and updated_at changed. No frontend code was changed.
+- Completed final Django/migration/whitespace checks and updated the README
+  and test report. The Day 12 scope is complete; counters follow on Day 13.

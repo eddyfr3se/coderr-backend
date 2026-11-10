@@ -38,3 +38,22 @@ class OrderCreateSerializer(OrderSerializer):
             delivery_time_in_days=package.delivery_time_in_days,
             features=list(package.features), offer_type=package.offer_type,
         )
+
+
+class OrderStatusSerializer(OrderSerializer):
+    status = serializers.ChoiceField(choices=Order.STATUS_CHOICES)
+
+    class Meta(OrderSerializer.Meta):
+        read_only_fields = tuple(
+            field for field in OrderSerializer.Meta.fields if field != 'status'
+        )
+
+    def validate(self, attrs):
+        extra_fields = set(self.initial_data) - {'status'}
+        if extra_fields:
+            raise serializers.ValidationError({
+                field: 'Only status may be changed.' for field in extra_fields
+            })
+        if 'status' not in attrs:
+            raise serializers.ValidationError({'status': 'This field is required.'})
+        return attrs
