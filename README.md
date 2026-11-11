@@ -104,8 +104,9 @@ frontend check.
 Order creation and order-list rendering were checked in the browser for a
 Customer and the receiving Business. A provider status change to completed
 persisted after reload and appeared in the Customer profile with unchanged
-package values. Missing order counters, reviews and
-statistics endpoints can still produce frontend errors.
+package values. Provider counters and review display were checked. A Customer
+created a disposable review, changed its text and rating, verified persistence
+after reload and deleted it. Platform statistics remain pending.
 
 ### Temporary ports
 
@@ -191,7 +192,26 @@ Orders store package values at creation, so later offer changes or deletion
 do not change existing orders. Deleting a linked customer/provider account
 cascades to its orders. Initial status is in_progress. The PATCH documentation
 specifies Business access; this implementation also requires provider ownership
-to prevent changes to foreign orders. Counters, reviews and statistics are pending.
+to prevent changes to foreign orders.
+
+- `GET /api/order-count/{business_user_id}/`: count in-progress orders.
+- `GET /api/completed-order-count/{business_user_id}/`: count completed orders.
+
+Both counters require authentication and return 404 for unknown or non-Business
+users. Business users without matching orders receive zero.
+
+Review endpoints require token authentication:
+
+- `GET /api/reviews/`: unpaginated list; filter by business_user_id or reviewer_id,
+  and order by rating or updated_at (prefix with minus for descending order).
+- `POST /api/reviews/`: Customers review a Business user with rating 1–5 and
+  description. The backend assigns the reviewer; duplicate pairs return 400.
+- `PATCH /api/reviews/{id}/`: only the author changes rating and description;
+  extra fields return 400. Staff cannot edit another author's review.
+- `DELETE /api/reviews/{id}/`: only the author deletes; returns an empty 204.
+
+The Review model enforces rating limits and unique reviewer/provider pairs in
+SQLite. Platform statistics at `/api/base-info/` remain pending.
 
 Applications:
 
@@ -255,7 +275,9 @@ Forty tests in orders_app cover model validation, stored package values,
 serializers, creation permissions, participant visibility and query counts.
 They also cover status validation, object permissions, protected fields,
 staff-only deletion and preservation of related records.
-The current total is **145 automated test methods**.
+Four counter tests, three review model tests and ten review API tests cover
+counts, rating limits, duplicate prevention, filters and author permissions.
+The current total is **162 automated test methods**.
 
 ### Postman desktop tests
 
@@ -334,3 +356,23 @@ Its 34 requests passed all 111 assertions in Postman Desktop on 10 November
 only its new disposable order, and retains the control order and offer.
 Status changes, role/ownership rejection, forbidden fields, empty 204 deletion
 and preservation of the control data are checked.
+
+
+### Day 13 counters and reviews
+
+Use the same Desktop Runner settings for these collections. The runs on
+11 November 2026 passed without failures:
+
+| Collection | Requests | Passed assertions |
+| --- | ---: | ---: |
+| `coderr-day13-counts.postman_collection.json` | 11 | 18 |
+| `coderr-day13-reviews.postman_collection.json` | 9 | 15 |
+| `coderr-day13-review-edits.postman_collection.json` | 11 | 22 |
+
+These local collections use existing Business fixtures, including Mara (ID 14)
+and the second counter provider (ID 26). Inspect the request expectations before
+using a different database. They create fictional Customer accounts which remain
+locally. The creation collection retains its review; the edit/delete collection
+removes only its own disposable review. Runtime credential variables are empty
+in the repository files. See TEST_RESULTS.md for the Desktop reimport and browser
+checks.

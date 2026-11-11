@@ -1,0 +1,333 @@
+{
+  "info": {
+    "name": "Coderr Day 13 - Order Counts",
+    "description": "Uses existing local fixtures: Mara (14) has one completed order; provider 26 has two running orders. Creates one fictional Customer for authenticated reads.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8001/api"
+    },
+    {
+      "key": "customer_username",
+      "value": ""
+    },
+    {
+      "key": "customer_email",
+      "value": ""
+    },
+    {
+      "key": "customer_token",
+      "value": ""
+    },
+    {
+      "key": "customer_id",
+      "value": ""
+    },
+    {
+      "key": "test_password",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Register customer",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/registration/",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{customer_username}}\",\n  \"email\": \"{{customer_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"repeated_password\": \"{{test_password}}\",\n  \"type\": \"customer\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const suffix = Date.now().toString() + '_' + Math.floor(Math.random() * 100000);",
+              "pm.collectionVariables.set('test_password', 'Local!' + pm.variables.replaceIn('{{$randomUUID}}'));",
+              "pm.collectionVariables.set('customer_username', 'tag13_customer_' + suffix);",
+              "pm.collectionVariables.set('customer_email', 'customer_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('customer_token', '');",
+              "pm.collectionVariables.set('business_username', 'tag13_business_' + suffix);",
+              "pm.collectionVariables.set('business_email', 'business_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('business_token', '');",
+              "pm.collectionVariables.set('other_customer_username', 'tag13_other_customer_' + suffix);",
+              "pm.collectionVariables.set('other_customer_email', 'other_customer_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('other_customer_token', '');",
+              "pm.collectionVariables.set('other_business_username', 'tag13_other_business_' + suffix);",
+              "pm.collectionVariables.set('other_business_email', 'other_business_' + suffix + '@coderr.example');",
+              "pm.collectionVariables.set('other_business_token', '');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 201', () => { pm.response.to.have.status(201); });",
+              "pm.test('JSON response', () => { pm.response.to.be.json; });",
+              "const data = pm.response.json();",
+              "pm.test('Registration fields', () => { pm.expect(data).to.have.all.keys('token','username','email','user_id'); });",
+              "pm.test('Token and user ID', () => { pm.expect(data.token).to.be.a('string').and.not.empty; pm.expect(data.user_id).to.be.a('number').and.above(0); });",
+              "pm.collectionVariables.set('customer_token', data.token);",
+              "pm.collectionVariables.set('customer_id', data.user_id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mara - order-count",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/order-count/14/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Exact count', () => pm.expect(pm.response.json()).to.eql({order_count: 0}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Other provider - order-count",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/order-count/26/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Exact count', () => pm.expect(pm.response.json()).to.eql({order_count: 2}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer - order-count",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/order-count/{{customer_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unknown - order-count",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/order-count/999999/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Anonymous - order-count",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/order-count/14/",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mara - completed-order-count",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/completed-order-count/14/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Exact count', () => pm.expect(pm.response.json()).to.eql({completed_order_count: 1}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Other provider - completed-order-count",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/completed-order-count/26/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Exact count', () => pm.expect(pm.response.json()).to.eql({completed_order_count: 0}));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customer - completed-order-count",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/completed-order-count/{{customer_id}}/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unknown - completed-order-count",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/completed-order-count/999999/",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Token {{customer_token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Anonymous - completed-order-count",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/completed-order-count/14/",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

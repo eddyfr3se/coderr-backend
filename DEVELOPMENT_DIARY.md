@@ -294,3 +294,39 @@ a protected business endpoint will be tested once that endpoint exists.
   confirmed only status and updated_at changed. No frontend code was changed.
 - Completed final Django/migration/whitespace checks and updated the README
   and test report. The Day 12 scope is complete; counters follow on Day 13.
+
+## Day 13 – Order counts and reviews
+
+- Added authenticated counts for in-progress and completed orders. Both routes
+  reuse one view, check that the target is a Business user, and count matching
+  orders in the database. Four new automated tests passed; total: 149.
+  Postman Desktop, frontend verification and reviews remain open.
+- Verified both counters with Postman CLI (18 assertions across 11 requests);
+  the Desktop Runner's Start run control was disabled. Confirmed Mara's
+  completed count (1) and queue count (0) in the frontend.
+- Checked off both counter routes in the browser and local requirements list.
+  Added and migrated the Review model, registered it in Django admin, and
+  added database constraints for ratings 1–5 and one review per customer/provider
+  pair. Review API endpoints remain open.
+- Implemented authenticated review listing with provider/reviewer filters and
+  rating/update-time ordering. Customers can create reviews for Business users;
+  the server assigns the reviewer. Duplicate creation returns 400, one of the
+  two statuses listed in the course documentation for that case.
+- Ran 15 passing Postman CLI assertions across 9 review requests. Confirmed
+  the four-star test review appears on Mara's provider profile and checked off
+  GET/POST reviews in both checklists.
+- Repeated both Day 13 collections in Postman Desktop: 15 review assertions
+  and 18 counter assertions passed. Reimporting the count collection under a
+  fresh name allowed the run to start.
+- Added author-only review PATCH and DELETE, following the Permissions entry
+  rather than allowing Staff to edit another author's review. Only rating and
+  description are writable. All 162 automated tests and 22 Postman Desktop
+  assertions passed. Checked off both routes in the browser and local list.
+- Verified the review lifecycle in the supplied frontend as Alex: created a
+  disposable four-star review for Mara, changed its text and rating to five,
+  and confirmed persistence after reloading. Deleted that same test review
+  and confirmed its absence after reloading. No frontend code changes were
+  needed. README updates and the Day 13 commit/push remain pending.
+
+- Completed the browser check and updated the README. Django system checks,
+  migration consistency checks, dependency checks and whitespace checks passed.

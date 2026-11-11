@@ -656,3 +656,66 @@ reported no changes. migrate --check and git diff --check succeeded. The local
 Staff fixture is disabled, its staff flag removed and token revoked; the
 Postman staff_token variable was verified empty after the run. No runtime
 credential value is stored in the repository collection.
+
+## Day 13 – Order counts
+
+Added automated tests for both provider counters. Verified separate status
+counts, exclusion of cancelled and other providers' orders, zero counts,
+authentication (401), and unknown/non-Business targets (404). All 149 test
+methods passed in 1.533 seconds. Postman Desktop and frontend checks are pending.
+
+Postman Desktop imported the Day 13 counts collection and displayed all 11
+selected requests, but Start run was disabled. The local Postman CLI ran the
+same collection: 11 requests, 18 assertions, zero failures. It registered one
+fictional Customer and verified the two response keys, counts for providers
+14 and 26, and 401/404 responses. No existing orders were changed.
+
+In the frontend, Mara's provider profile showed one completed project and
+offer 10 showed zero orders in the queue. Review data is still pending.
+
+The initial Review migration applied successfully. Three model tests verified
+ratings 1–5 and one review per customer/provider pair, while allowing the same
+customer to review different providers. All 152 automated tests passed.
+
+Five review API tests verified customer-only creation, server-assigned author,
+duplicate rejection without overwrite, invalid stars/provider rejection, and
+authenticated listing with filters and ordering. All 157 automated tests
+passed. Postman and frontend checks for these endpoints remain open.
+
+Postman CLI verified the review collection on 11 November 2026: 9 requests,
+15 assertions, no failures. One fictional Customer and its four-star review
+remain locally. The review text and 4.0 average appeared in Mara's provider
+profile. The two checked operations were marked in the browser and local list.
+
+### Desktop follow-up – 11 November 2026
+
+Both Day 13 collections also passed in Postman Desktop 12.35.5: reviews
+15/15 assertions across 9 requests, and order counts 18/18 assertions across
+11 requests. The original count Runner remained disabled; a fresh import of
+the same collection with a Desktop suffix ran successfully. Both runs used
+one iteration, no environment or stored cookies, and did not retain runtime
+variables. Two additional fictional Customer accounts and one review remain
+in the local database.
+
+Five additional automated review tests covered partial updates, invalid
+fields and ratings, author permissions including foreign Staff, anonymous
+requests, and deletion with an empty 204. All 162 automated tests passed.
+Postman Desktop ran the edit/delete collection on 11 November 2026:
+11 requests and all 22 assertions passed, zero errors. The run created two
+fictional customers and removed only its own test review. The existing
+reviews remain. Edit/delete in the frontend have not yet been checked.
+
+### Frontend review lifecycle – 11 November 2026
+
+Using the supplied frontend on port 5501 and backend on port 8001, Alex
+created a disposable four-star review for Mara through the browser. In his
+own profile, he changed the description and selected five stars. After
+reloading, the edit dialog still showed the new description and five stars.
+Deleted only this newly created review through the confirmation dialog.
+Reloading the own profile showed no reviews for Alex. No frontend source
+changes were needed. This completes the pending frontend edit/delete check.
+
+Day 13 final checks: Django reported no issues, no missing migrations or
+unapplied migrations. pip check reported no broken requirements.
+The final whitespace check passed. No backend code changed after the recorded
+162-test run. Repository collection credential variables are empty.
