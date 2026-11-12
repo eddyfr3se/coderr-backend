@@ -719,3 +719,34 @@ Day 13 final checks: Django reported no issues, no missing migrations or
 unapplied migrations. pip check reported no broken requirements.
 The final whitespace check passed. No backend code changed after the recorded
 162-test run. Repository collection credential variables are empty.
+
+
+## Day 14 – Local exercises, 12 November 2026
+
+Postman Desktop Runner executed these separate exercises on port 8002:
+
+| Exercise | Requests | Passed assertions | Duration |
+| --- | ---: | ---: | ---: |
+| Initial GET throttle | 4 | 5 | 294 ms |
+| POST-only throttle via get_throttles | 9 | 10 | 252 ms |
+| ScopedRateThrottle and separate scope | 5 | 6 | 216 ms |
+| PageNumber / LimitOffset comparison | 6 | 18 | 213 ms |
+
+Each run had one iteration, no environment, no stored cookies and no retained
+variable values. All assertions passed, with zero execution errors. Verified
+429 and a positive Retry-After header, GET access after throttled POST, separate
+scope counters, matching pagination IDs and an empty list beyond the last item.
+Django system checks passed for the exercise server.
+
+The initial GET-throttle collection represents an earlier exercise version;
+GET at that route is unrestricted in the final method-selection version.
+The exercises and collections remain local and are not part of the backend
+installation. The last recorded full backend suite remains 162 tests from
+Day 13; it was not rerun for these separate exercises. Recovery after expiry
+was checked in the follow-up below.
+
+Day 14 follow-up: repeated the scoped Desktop collection (6/6 assertions
+passed, fourth scoped GET returned 429). After more than 25 minutes, a single
+GET to the same endpoint returned 200 OK with Test Results 1/1. No server
+restart or cache reset was performed for this check. Recovery after the
+throttle window is now verified; the exact 60-second boundary was not tested.

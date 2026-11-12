@@ -330,3 +330,22 @@ a protected business endpoint will be tested once that endpoint exists.
 
 - Completed the browser check and updated the README. Django system checks,
   migration consistency checks, dependency checks and whitespace checks passed.
+
+
+## Day 14 – Separate DRF exercises
+
+- Prepared an isolated local exercise server on port 8002 using the installed
+  Django/DRF dependencies, without database models. Excluded learning_local
+  from Git. The Coderr API routes and throttling policy remain unchanged.
+- Practised a custom rate class, method selection with get_throttles and
+  ScopedRateThrottle. Verified independent scope counters in Postman Desktop.
+- Compared PageNumberPagination and LimitOffsetPagination with six fixed
+  records. Corresponding parameters returned identical record IDs.
+- Four Desktop runs passed 39 assertions across 24 requests in total.
+  These are separate exercise runs, not a full Coderr regression.
+- Compared APIView, generic views and ViewSets conceptually. Existing review
+  filtering and ordering were explained; no additional review code was needed.
+- Repeated the scoped collection (6/6 assertions) and confirmed a later
+  request was allowed after the throttle window (1/1 assertion). The exact
+  time boundary was not tested. Recorded results and completed the technical
+  exercise work for Day 14.
