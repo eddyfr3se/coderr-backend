@@ -349,3 +349,22 @@ a protected business endpoint will be tested once that endpoint exists.
   request was allowed after the throttle window (1/1 assertion). The exact
   time boundary was not tested. Recorded results and completed the technical
   exercise work for Day 14.
+
+## Day 15 – Platform statistics
+
+- Added the public base-info route, an explicit output serializer and aggregate
+  review statistics. Business profile and offer counts use separate queries;
+  the empty rating average returns zero. No new model or migration needed.
+- Four new tests and the full 166-test suite passed. Postman Desktop and
+  frontend verification remain open.
+- Postman Desktop passed all 12 statistics assertions across 5 requests,
+  including an anonymous GET compared with local database counts and rejected
+  write methods. Frontend verification remains pending.
+- Confirmed all four statistics on the frontend home page: 9 offers,
+  2 reviews, 15 providers and average 4. Marked base-info complete locally
+  and in the browser checklist. Day 15 documentation and final contract
+  review remain pending.
+- On 13 November, checked all 23 planned routes and HTTP methods, updated
+  the README and completed system/migration checks. Statistics implementation
+  and its Django, Postman Desktop and frontend checks are complete. Final
+  project-wide acceptance remains scheduled for the remaining days.

@@ -106,7 +106,8 @@ Customer and the receiving Business. A provider status change to completed
 persisted after reload and appeared in the Customer profile with unchanged
 package values. Provider counters and review display were checked. A Customer
 created a disposable review, changed its text and rating, verified persistence
-after reload and deleted it. Platform statistics remain pending.
+after reload and deleted it. Home-page statistics were checked against the
+API response and local database counts.
 
 ### Temporary ports
 
@@ -211,7 +212,12 @@ Review endpoints require token authentication:
 - `DELETE /api/reviews/{id}/`: only the author deletes; returns an empty 204.
 
 The Review model enforces rating limits and unique reviewer/provider pairs in
-SQLite. Platform statistics at `/api/base-info/` remain pending.
+SQLite.
+
+`GET /api/base-info/` is public and returns review_count, average_rating,
+business_profile_count and offer_count. The average is rounded to one decimal;
+without reviews it is 0.0. Only Business profiles are counted as providers.
+The statistics use three database queries. Write methods return 405.
 
 Applications:
 
@@ -277,7 +283,8 @@ They also cover status validation, object permissions, protected fields,
 staff-only deletion and preservation of related records.
 Four counter tests, three review model tests and ten review API tests cover
 counts, rating limits, duplicate prevention, filters and author permissions.
-The current total is **162 automated test methods**.
+Four base-info tests cover public access, empty data, counts, rounding, query
+count and rejected write methods. The current total is **166 automated test methods**.
 
 ### Postman desktop tests
 
@@ -376,3 +383,18 @@ locally. The creation collection retains its review; the edit/delete collection
 removes only its own disposable review. Runtime credential variables are empty
 in the repository files. See TEST_RESULTS.md for the Desktop reimport and browser
 checks.
+
+
+### Day 15 platform statistics
+
+Import `postman/coderr-day15-base-info.postman_collection.json` with the same
+Desktop Runner settings. It creates no test records. Five requests passed all
+12 assertions on 12 November 2026, including comparison with an independently
+read local database snapshot. The repository collection has verify_snapshot
+set to false: its normal run checks 11 assertions. To repeat the additional
+comparison, first set expected_snapshot to the current four database values
+as JSON and enable verify_snapshot. Do not reuse an outdated snapshot.
+
+All 23 planned API operations are implemented. Final regression, official
+Academy PM checks and submission review remain pending; this is not a claim
+that the project has passed final acceptance.

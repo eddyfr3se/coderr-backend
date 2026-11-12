@@ -4,6 +4,13 @@ from rest_framework import serializers
 from reviews_app.models import Review
 
 
+class BaseInfoSerializer(serializers.Serializer):
+    review_count = serializers.IntegerField(read_only=True)
+    average_rating = serializers.FloatField(read_only=True)
+    business_profile_count = serializers.IntegerField(read_only=True)
+    offer_count = serializers.IntegerField(read_only=True)
+
+
 class ReviewSerializer(serializers.ModelSerializer):
     business_user = serializers.PrimaryKeyRelatedField(
         queryset=get_user_model().objects.filter(profile__type='business'),

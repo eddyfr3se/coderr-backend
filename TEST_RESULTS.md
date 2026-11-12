@@ -750,3 +750,32 @@ passed, fourth scoped GET returned 429). After more than 25 minutes, a single
 GET to the same endpoint returned 200 OK with Test Results 1/1. No server
 restart or cache reset was performed for this check. Recovery after the
 throttle window is now verified; the exact 60-second boundary was not tested.
+
+## Day 15 – Base information
+
+Implemented public GET /api/base-info/. Four new automated tests passed:
+empty data returns zeroes, business-only/global counts, rounded average 4.3,
+three database queries, providers without reviews, and rejected write methods.
+The full suite passed all 166 tests in 1.088 seconds. Django system checks and
+migration consistency checks passed. Postman Desktop and frontend checks are
+pending; the endpoint is not yet checked off for acceptance.
+
+Day 15 Postman Desktop, 12 November 2026: 5 requests, 12/12 assertions
+passed, zero errors, 259 ms. One iteration, no environment, no stored cookies
+and no retained runtime variables. Public GET matched an independently read
+local database snapshot: 2 reviews, average 4.0, 15 Business profiles, 9 offers.
+POST/PUT/PATCH/DELETE returned 405. No records were created or modified.
+The repository collection disables the optional snapshot comparison by default;
+the Desktop run enabled it with the values above. Frontend check remains open.
+
+Day 15 frontend check: the supplied index.html on port 5501 displayed
+9 offers, 2 reviews, 15 providers and satisfaction 4. The frontend renders
+the numeric average 4.0 as 4. All four values matched the database snapshot
+and Postman response. No frontend source changes were needed. Marked base-info
+complete in the local requirements list and the browser endpoint checklist.
+
+Day 15 final checks, 13 November 2026: all 23 operations in the local
+requirements list resolved to views supporting their required HTTP methods.
+Django system and migration checks passed. The last full run remains 166
+passing tests; no implementation changes followed that run. This route check
+does not replace the final field/permission audit or official Academy tests.

@@ -1,0 +1,134 @@
+{
+  "info": {
+    "name": "Coderr Day 15 - Base Info",
+    "description": "Read-only checks. Enable verify_snapshot only when expected_snapshot matches the current local database. No test data is created.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8001/api"
+    },
+    {
+      "key": "verify_snapshot",
+      "value": "false"
+    },
+    {
+      "key": "expected_snapshot",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Public statistics",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/base-info/",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Public HTTP 200\", () => pm.response.to.have.status(200));",
+              "const body = pm.response.json();",
+              "pm.test(\"Exact response fields\", () => pm.expect(body).to.have.all.keys(\"review_count\", \"average_rating\", \"business_profile_count\", \"offer_count\"));",
+              "[\"review_count\", \"business_profile_count\", \"offer_count\"].forEach(key => pm.test(key + \" is nonnegative integer\", () => {pm.expect(Number.isInteger(body[key])).to.equal(true); pm.expect(body[key]).to.be.at.least(0);}));",
+              "pm.test(\"Average is numeric and within range\", () => {pm.expect(body.average_rating).to.be.a(\"number\"); pm.expect(body.average_rating).to.be.within(0,5);});",
+              "pm.test(\"Average has at most one decimal\", () => pm.expect(Math.abs(body.average_rating * 10 - Math.round(body.average_rating * 10))).to.be.below(0.000001));",
+              "if (pm.collectionVariables.get(\"verify_snapshot\") === \"true\") { pm.test(\"Matches local database snapshot\", () => pm.expect(body).to.eql(JSON.parse(pm.collectionVariables.get(\"expected_snapshot\")))); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "POST is not allowed",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/base-info/",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 405\", () => pm.response.to.have.status(405));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PUT is not allowed",
+      "request": {
+        "method": "PUT",
+        "url": "{{base_url}}/base-info/",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 405\", () => pm.response.to.have.status(405));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "PATCH is not allowed",
+      "request": {
+        "method": "PATCH",
+        "url": "{{base_url}}/base-info/",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 405\", () => pm.response.to.have.status(405));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "DELETE is not allowed",
+      "request": {
+        "method": "DELETE",
+        "url": "{{base_url}}/base-info/",
+        "auth": {
+          "type": "noauth"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 405\", () => pm.response.to.have.status(405));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
