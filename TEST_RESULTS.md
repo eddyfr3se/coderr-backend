@@ -779,3 +779,23 @@ requirements list resolved to views supporting their required HTTP methods.
 Django system and migration checks passed. The last full run remains 166
 passing tests; no implementation changes followed that run. This route check
 does not replace the final field/permission audit or official Academy tests.
+
+## Day 16 – Standard ports, 13 November 2026
+
+Changed backend to 8000, frontend to 5500, CORS origins, frontend config and
+all 16 repository collection base URLs. Stopped old 8001/5501 servers.
+All 166 Django tests passed in 1.073 seconds. Postman Desktop with environment
+Coderr Local 8000 passed 12/12 assertions across 5 statistics requests (292 ms).
+The browser at localhost:5500 showed 9 offers, 2 reviews, 15 providers and
+average 4. API returned the expected CORS header for 127.0.0.1:5500.
+An old token at the 127.0.0.1:5500 browser origin caused 401 on initial loading;
+localhost:5500 worked without those stale credentials. No old browser storage
+was removed. Historical results above retain the ports used at the time.
+
+ORM comparison: serializing 1/3/6 existing offers without related loading
+needed 3/7/13 queries; the current optimized queryset needed 2 in every case,
+with identical output. This measured the existing optimization, not a new
+production code change. Pagination count and authentication are excluded
+from this serializer comparison. Seven focused query/statistics tests passed.
+The initial measurement attempt used an invalid testserver host; retrying with
+127.0.0.1:8001 fixed the measurement setup without changing project settings.

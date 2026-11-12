@@ -368,3 +368,13 @@ a protected business endpoint will be tested once that endpoint exists.
   the README and completed system/migration checks. Statistics implementation
   and its Django, Postman Desktop and frontend checks are complete. Final
   project-wide acceptance remains scheduled for the remaining days.
+
+## Day 16 – In progress
+
+- Measured existing offer-query optimization: 6 offers need 2 queries instead
+  of 13 without related loading, with identical serialized output.
+- Moved Coderr to ports 8000/5500 after KanMind no longer needed them. Updated
+  CORS, frontend config, README and collection URLs. Verified the home page
+  via localhost and 12 Postman Desktop assertions on the new backend port;
+  all 166 Django tests passed. Existing imported collections use a new local
+  Postman environment to override the former base URL.

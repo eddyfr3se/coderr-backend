@@ -47,11 +47,11 @@ From the backend directory:
 
 ```bash
 source .venv/bin/activate
-python manage.py runserver 127.0.0.1:8001
+python manage.py runserver 127.0.0.1:8000
 ```
 
-- API base URL: `http://127.0.0.1:8001/api/`
-- Admin login: `http://127.0.0.1:8001/admin/`
+- API base URL: `http://127.0.0.1:8000/api/`
+- Admin login: `http://127.0.0.1:8000/admin/`
 - Stop your terminal's server with Control+C.
 
 An admin account is not created automatically. To create one locally, run
@@ -76,8 +76,8 @@ Source commit: `31d1e195d639e8bce91f87c5b330b9d040ef5c46`.
 In the separate frontend's `shared/scripts/config.js`, use:
 
 ```javascript
-const API_BASE_URL = 'http://127.0.0.1:8001/api/';
-const STATIC_BASE_URL = 'http://127.0.0.1:8001/';
+const API_BASE_URL = 'http://127.0.0.1:8000/api/';
+const STATIC_BASE_URL = 'http://127.0.0.1:8000/';
 ```
 
 Those two addresses are the only frontend changes made during setup.
@@ -88,11 +88,11 @@ Keep Django running. In a second terminal, from the backend directory:
 
 ```bash
 source .venv/bin/activate
-python -m http.server 5501 --bind 127.0.0.1 --directory ../Coderr_Frontend
+python -m http.server 5500 --bind 127.0.0.1 --directory ../Coderr_Frontend
 ```
 
-Open `http://127.0.0.1:5501/` in your browser. The backend allows frontend
-origins `http://127.0.0.1:5501` and `http://localhost:5501` through CORS.
+Open `http://localhost:5500/` in your browser. The backend allows frontend
+origins `http://127.0.0.1:5500` and `http://localhost:5500` through CORS.
 Registration, login, own-profile loading/editing and PNG upload were checked
 in the browser for Customer and Business accounts, including a fresh login.
 Offer detail rendering and all three package tabs were also checked. Offer
@@ -109,17 +109,15 @@ created a disposable review, changed its text and rating, verified persistence
 after reload and deleted it. Home-page statistics were checked against the
 API response and local database counts.
 
-### Temporary ports
+### Local ports
 
-Coderr currently uses backend port **8001** and frontend port **5501** so the
-existing KanMind development servers can continue using 8000 and 5500.
-
-When switching Coderr to 8000/5500 later, update these together:
-
-- Backend and frontend start commands.
-- Both backend addresses in the frontend's `shared/scripts/config.js`.
-- `CORS_ALLOWED_ORIGINS` in `core/settings.py`.
-- README instructions and any Postman environment created by then.
+Coderr uses backend port **8000** and frontend port **5500**. Keep the frontend
+configuration, Postman base_url and CORS origins aligned with these addresses.
+If an old application left an invalid login token under 127.0.0.1:5500,
+use localhost:5500 or clear the old site storage before signing in again.
+For collections already imported with port 8001, select the Postman environment
+`Coderr Local 8000` (base_url = http://127.0.0.1:8000/api), or reimport the
+updated repository collections.
 
 ## Project status
 
@@ -290,7 +288,7 @@ count and rejected write methods. The current total is **166 automated test meth
 
 Import [the authentication collection](postman/coderr-day5-auth.postman_collection.json)
 into the Postman desktop app. Use **No Environment** to avoid overriding its
-`base_url`, which is `http://127.0.0.1:8001/api`.
+`base_url`, which is `http://127.0.0.1:8000/api`.
 
 Run all 18 requests in order with one iteration. Disable **Keep variable
 values** and enable **Run collection without using stored cookies**.
