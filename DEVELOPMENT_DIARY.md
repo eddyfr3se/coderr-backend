@@ -378,3 +378,11 @@ a protected business endpoint will be tested once that endpoint exists.
   via localhost and 12 Postman Desktop assertions on the new backend port;
   all 166 Django tests passed. Existing imported collections use a new local
   Postman environment to override the former base URL.
+
+## Day 17 – Frontend workflow
+
+- Verified registration, fresh login, offer search and a Basic test order.
+- Completed the same order as the Business user and checked the status in both
+  roles. Verified review creation and visibility in both profiles.
+- Updated the test Customer name and uploaded a PNG. Confirmed both survived
+  reload on the standard local ports.

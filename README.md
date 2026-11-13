@@ -80,9 +80,23 @@ const API_BASE_URL = 'http://127.0.0.1:8000/api/';
 const STATIC_BASE_URL = 'http://127.0.0.1:8000/';
 ```
 
-Those two addresses are the only frontend changes made during setup.
-The supplied guest login values have not been changed. Matching demo accounts
-have not been created, so guest login is not ready.
+For local guest login, create the two fictional demo accounts after migrating:
+
+```bash
+python manage.py create_demo_accounts
+```
+
+Set the guest accounts in the same frontend configuration file:
+
+```javascript
+const GUEST_LOGINS = {
+    customer: {username: 'coderr_demo_customer', password: 'Coderr-demo-local-2026!'},
+    business: {username: 'coderr_demo_business', password: 'Coderr-demo-local-2026!'}
+};
+```
+
+These credentials are for local development. The command requires
+`DJANGO_DEBUG=True` and leaves existing accounts unchanged.
 
 Keep Django running. In a second terminal, from the backend directory:
 

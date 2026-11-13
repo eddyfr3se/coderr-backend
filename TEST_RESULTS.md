@@ -799,3 +799,27 @@ production code change. Pagination count and authentication are excluded
 from this serializer comparison. Seven focused query/statistics tests passed.
 The initial measurement attempt used an invalid testserver host; retrying with
 127.0.0.1:8001 fixed the measurement setup without changing project settings.
+
+## Day 17 – Browser workflow, 13 November 2026
+
+The supplied frontend on localhost:5500 used the backend on 127.0.0.1:8000.
+Registered a fictional Customer, signed out, signed in again and opened the
+customer profile. Searched for the flower shop offer and ordered its Basic
+package. Order 6 appeared as in progress for the Customer. Signed in as the
+existing Business user, completed order 6 and verified the status after reload.
+The Customer also saw it as completed. Created a review visible on both the
+Business profile and the Customer’s own profile. Saved the Customer name and
+uploaded the PNG fixture. The name persisted and the served image loaded after
+reload. The local test account, order, review and image remain as fixtures.
+The broader regression and official acceptance tests are scheduled separately.
+
+## Day 18 – Django regression, 13 November 2026
+
+All 166 Django tests passed in 1.070 seconds. Django system checks reported
+no issues. The Postman Desktop regression and official Academy tests are pending.
+
+## Clean database verification
+
+Applied all migrations in an isolated copy using the installed dependencies.
+Created both local guest accounts, reran the setup command to check that it
+left them intact, and verified both logins and the fresh database statistics.
