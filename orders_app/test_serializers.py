@@ -13,7 +13,9 @@ from .models import Order
 
 
 class OrderSerializerTests(TestCase):
+    """Test order serializer."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.customer = get_user_model().objects.create_user(username='buyer')
         self.business = get_user_model().objects.create_user(username='seller')
         self.offer = Offer.objects.create(user=self.business, title='Website')
@@ -24,6 +26,7 @@ class OrderSerializerTests(TestCase):
         )
 
     def create_order(self, extra=None):
+        """Create an order through the serializer for the test."""
         data = {'offer_detail_id': self.package.pk}
         data.update(extra or {})
         serializer = OrderCreateSerializer(data=data)
@@ -31,6 +34,7 @@ class OrderSerializerTests(TestCase):
         return serializer.save(customer_user=self.customer)
 
     def test_creation_copies_package_values_and_assigns_users(self):
+        """Verify that creation copies package values and assigns users."""
         order = self.create_order()
         self.assertEqual(order.customer_user, self.customer)
         self.assertEqual(order.business_user, self.business)
@@ -43,6 +47,7 @@ class OrderSerializerTests(TestCase):
         self.assertEqual(order.status, 'in_progress')
 
     def test_read_only_input_cannot_override_server_values(self):
+        """Verify that read only input cannot override server values."""
         order = self.create_order({
             'id': 999, 'customer_user': self.business.pk,
             'business_user': self.customer.pk, 'price': 1,
@@ -57,6 +62,7 @@ class OrderSerializerTests(TestCase):
         self.assertEqual(order.features, self.package.features)
 
     def test_output_has_documented_fields_and_numeric_price(self):
+        """Verify that output has documented fields and numeric price."""
         data = OrderSerializer(self.create_order()).data
         self.assertSetEqual(set(data), {
             'id', 'customer_user', 'business_user', 'title', 'revisions',
@@ -67,6 +73,7 @@ class OrderSerializerTests(TestCase):
         self.assertEqual(rendered['price'], 180.5)
 
     def test_create_output_excludes_input_only_package_id(self):
+        """Verify that create output excludes input only package id."""
         serializer = OrderCreateSerializer(data={'offer_detail_id': self.package.pk})
         self.assertTrue(serializer.is_valid())
         serializer.save(customer_user=self.customer)
@@ -74,12 +81,14 @@ class OrderSerializerTests(TestCase):
         self.assertSetEqual(set(serializer.data), set(OrderSerializer.Meta.fields))
 
     def test_missing_package_id_is_required(self):
+        """Verify that missing package id is required."""
         serializer = OrderCreateSerializer(data={})
         self.assertFalse(serializer.is_valid())
         self.assertIn('offer_detail_id', serializer.errors)
         self.assertEqual(Order.objects.count(), 0)
 
     def test_malformed_package_ids_are_rejected(self):
+        """Verify that malformed package ids are rejected."""
         for value in ('abc', 0, -1, 1.5, None):
             with self.subTest(value=value):
                 serializer = OrderCreateSerializer(data={'offer_detail_id': value})
@@ -88,6 +97,7 @@ class OrderSerializerTests(TestCase):
         self.assertEqual(Order.objects.count(), 0)
 
     def test_nonexistent_package_does_not_create_order(self):
+        """Verify that nonexistent package does not create order."""
         serializer = OrderCreateSerializer(data={'offer_detail_id': 999999})
         self.assertTrue(serializer.is_valid())
         with self.assertRaises(Http404):
@@ -95,6 +105,7 @@ class OrderSerializerTests(TestCase):
         self.assertEqual(Order.objects.count(), 0)
 
     def test_saved_values_survive_package_change_and_deletion(self):
+        """Verify that saved values survive package change and deletion."""
         order = self.create_order()
         self.package.price = Decimal('220.00')
         self.package.title = 'Changed'

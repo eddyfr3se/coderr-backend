@@ -17,9 +17,11 @@ from .serializers import BaseInfoSerializer, ReviewSerializer, ReviewUpdateSeria
 
 
 class BaseInfoView(APIView):
+    """Return public marketplace statistics using aggregate queries."""
     permission_classes = [AllowAny]
 
     def get(self, request):
+        """Aggregate review statistics and count providers and offers."""
         data = Review.objects.aggregate(
             review_count=Count('id'), average_rating=Avg('rating'),
         )
@@ -32,6 +34,7 @@ class BaseInfoView(APIView):
 
 
 class ReviewListCreateView(ListCreateAPIView):
+    """List filtered reviews and accept new customer reviews."""
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     pagination_class = None
@@ -41,15 +44,18 @@ class ReviewListCreateView(ListCreateAPIView):
     ordering = ['-updated_at', '-id']
 
     def get_permissions(self):
+        """Require a customer for creation and authentication for reads."""
         if self.request.method == 'POST':
             return [IsAuthenticated(), IsCustomerUser()]
         return [IsAuthenticated()]
 
     def perform_create(self, serializer):
+        """Assign the authenticated customer as the reviewer."""
         serializer.save(reviewer=self.request.user)
 
 
 class ReviewUpdateDeleteView(RetrieveUpdateDestroyAPIView):
+    """Allow authors to update or delete their own reviews."""
     queryset = Review.objects.all()
     serializer_class = ReviewUpdateSerializer
     permission_classes = [IsAuthenticated, IsReviewAuthor]

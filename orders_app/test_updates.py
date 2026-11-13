@@ -1,3 +1,6 @@
+from datetime import timedelta
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
@@ -11,7 +14,9 @@ from .models import Order
 
 
 class OrderUpdateDeleteAPITests(APITestCase):
+    """Test order update delete api."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.customer = self.make_user('buyer', 'customer')
         self.business = self.make_user('seller', 'business')
         self.other_business = self.make_user('other_seller', 'business')
@@ -22,11 +27,13 @@ class OrderUpdateDeleteAPITests(APITestCase):
         self.url = reverse('order-detail', kwargs={'pk': self.order.pk})
 
     def make_user(self, username, role):
+        """Create a test user with the requested role."""
         user = get_user_model().objects.create_user(username=username)
         UserProfile.objects.create(user=user, type=role)
         return user
 
     def make_order(self, title):
+        """Create an order with the requested test values."""
         return Order.objects.create(
             customer_user=self.customer, business_user=self.business,
             title=title, price='180.50', revisions=2, delivery_time_in_days=7,
@@ -34,10 +41,12 @@ class OrderUpdateDeleteAPITests(APITestCase):
         )
 
     def authenticate(self, user):
+        """Attach a test user token to subsequent API requests."""
         token, _ = Token.objects.get_or_create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 
     def test_provider_can_set_all_documented_statuses(self):
+        """Verify that provider can set all documented statuses."""
         self.authenticate(self.business)
         for value in ('completed', 'cancelled', 'in_progress'):
             with self.subTest(status=value):
@@ -49,16 +58,22 @@ class OrderUpdateDeleteAPITests(APITestCase):
                 self.assertEqual(self.order.status, value)
 
     def test_status_update_preserves_agreed_data_and_creation_time(self):
+        """Verify that status update preserves agreed data and creation time."""
         before = dict(OrderSerializer(self.order).data)
         self.authenticate(self.business)
-        response = self.client.patch(self.url, {'status': 'completed'}, format='json')
+        updated_at = self.order.updated_at + timedelta(seconds=1)
+        with patch('django.utils.timezone.now', return_value=updated_at):
+            response = self.client.patch(self.url, {'status': 'completed'}, format='json')
         self.assertEqual(response.status_code, 200)
         for field, value in before.items():
             if field not in ('status', 'updated_at'):
                 self.assertEqual(response.data[field], value)
         self.assertNotEqual(response.data['updated_at'], before['updated_at'])
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.updated_at, updated_at)
 
     def test_customer_foreign_provider_and_staff_cannot_patch(self):
+        """Verify that customer foreign provider and staff cannot patch."""
         for user in (self.customer, self.other_business, self.staff):
             with self.subTest(user=user.username):
                 self.authenticate(user)
@@ -68,6 +83,7 @@ class OrderUpdateDeleteAPITests(APITestCase):
         self.assertEqual(self.order.status, 'in_progress')
 
     def test_assigned_user_also_needs_business_profile(self):
+        """Verify that assigned user also needs business profile."""
         self.business.profile.type = 'customer'
         self.business.profile.save()
         self.authenticate(self.business)
@@ -75,6 +91,7 @@ class OrderUpdateDeleteAPITests(APITestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_anonymous_patch_and_delete_return_401(self):
+        """Verify that anonymous patch and delete return 401."""
         for method in ('patch', 'delete'):
             with self.subTest(method=method):
                 response = getattr(self.client, method)(self.url)
@@ -82,6 +99,7 @@ class OrderUpdateDeleteAPITests(APITestCase):
         self.assertTrue(Order.objects.filter(pk=self.order.pk).exists())
 
     def test_invalid_status_returns_400_without_changes(self):
+        """Verify that invalid status returns 400 without changes."""
         self.authenticate(self.business)
         before = dict(OrderSerializer(self.order).data)
         for value in ('unknown', '', None, 123):
@@ -93,6 +111,7 @@ class OrderUpdateDeleteAPITests(APITestCase):
         self.assertEqual(dict(OrderSerializer(self.order).data), before)
 
     def test_extra_fields_return_400_and_do_not_apply_status(self):
+        """Verify that extra fields return 400 and do not apply status."""
         self.authenticate(self.business)
         for field in ('price', 'customer_user', 'business_user', 'title', 'revisions',
                       'features', 'offer_type', 'delivery_time_in_days', 'id',
@@ -107,12 +126,14 @@ class OrderUpdateDeleteAPITests(APITestCase):
         self.assertEqual(self.order.status, 'in_progress')
 
     def test_empty_patch_requires_status(self):
+        """Verify that empty patch requires status."""
         self.authenticate(self.business)
         response = self.client.patch(self.url, {}, format='json')
         self.assertEqual(response.status_code, 400)
         self.assertIn('status', response.data)
 
     def test_missing_order_returns_404_for_authorized_users(self):
+        """Verify that missing order returns 404 for authorized users."""
         missing = reverse('order-detail', kwargs={'pk': 999999})
         self.authenticate(self.business)
         self.assertEqual(self.client.patch(missing, {'status': 'completed'}).status_code, 404)
@@ -120,6 +141,7 @@ class OrderUpdateDeleteAPITests(APITestCase):
         self.assertEqual(self.client.delete(missing).status_code, 404)
 
     def test_staff_deletes_only_order_with_empty_204(self):
+        """Verify that staff deletes only order with empty 204."""
         self.authenticate(self.staff)
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, 204)
@@ -131,6 +153,7 @@ class OrderUpdateDeleteAPITests(APITestCase):
         self.assertTrue(get_user_model().objects.filter(pk=self.business.pk).exists())
 
     def test_nonstaff_participants_and_foreign_provider_cannot_delete(self):
+        """Verify that nonstaff participants and foreign provider cannot delete."""
         for user in (self.customer, self.business, self.other_business):
             with self.subTest(user=user.username):
                 self.authenticate(user)
@@ -138,16 +161,19 @@ class OrderUpdateDeleteAPITests(APITestCase):
         self.assertTrue(Order.objects.filter(pk=self.order.pk).exists())
 
     def test_repeated_staff_deletion_returns_404(self):
+        """Verify that repeated staff deletion returns 404."""
         self.authenticate(self.staff)
         self.assertEqual(self.client.delete(self.url).status_code, 204)
         self.assertEqual(self.client.delete(self.url).status_code, 404)
 
     def test_staff_customer_profile_can_delete(self):
+        """Verify that staff customer profile can delete."""
         UserProfile.objects.create(user=self.staff, type='customer')
         self.authenticate(self.staff)
         self.assertEqual(self.client.delete(self.url).status_code, 204)
 
     def test_get_put_and_post_are_not_enabled(self):
+        """Verify that get put and post are not enabled."""
         self.authenticate(self.business)
         for method in ('get', 'put', 'post'):
             with self.subTest(method=method):

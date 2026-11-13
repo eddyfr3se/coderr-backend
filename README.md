@@ -296,7 +296,9 @@ staff-only deletion and preservation of related records.
 Four counter tests, three review model tests and ten review API tests cover
 counts, rating limits, duplicate prevention, filters and author permissions.
 Four base-info tests cover public access, empty data, counts, rounding, query
-count and rejected write methods. The current total is **166 automated test methods**.
+count and rejected write methods. Two timestamp regression tests check UTC output
+in winter and summer across profiles, offers, orders and reviews, including
+preservation of stored precision. The current total is **168 automated test methods**.
 
 ### Postman desktop tests
 

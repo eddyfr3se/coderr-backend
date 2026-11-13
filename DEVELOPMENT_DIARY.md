@@ -386,3 +386,16 @@ a protected business endpoint will be tested once that endpoint exists.
   roles. Verified review creation and visibility in both profiles.
 - Updated the test Customer name and uploaded a PNG. Confirmed both survived
   reload on the standard local ports.
+
+## Feedback corrections – 13 November 2026
+
+- Reviewed the feedback transcript and the demonstrated profile timestamp.
+  Installation and app structure were accepted; missing English docstrings
+  and the response timestamp format were the requested corrections.
+- Documented handwritten classes and methods, including tests and helpers.
+- Configured UTC timestamps without fractional seconds centrally in settings.
+  Added seasonal API regression checks and adjusted the order timestamp test
+  to use a controlled one-second interval.
+- Verified 168 Django tests and 16 assertions in Postman Desktop. Restarted
+  the existing server to load the changed settings and removed only the
+  disposable test accounts and orders created during this verification.

@@ -4,6 +4,7 @@ from django.db import models
 
 
 class Review(models.Model):
+    """Store one customer rating per business user."""
     business_user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='received_reviews',
@@ -20,6 +21,7 @@ class Review(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        """Define database constraints for reviews."""
         constraints = [
             models.UniqueConstraint(
                 fields=['business_user', 'reviewer'],
@@ -32,4 +34,5 @@ class Review(models.Model):
         ]
 
     def __str__(self):
+        """Return the review identifier and rating for display."""
         return f'Review {self.pk}: {self.rating}/5'

@@ -3,10 +3,12 @@ from rest_framework.pagination import PageNumberPagination
 
 
 class OfferPagination(PageNumberPagination):
+    """Paginate offers with a validated positive page size."""
     page_size = 6
     page_size_query_param = 'page_size'
 
     def get_page_size(self, request):
+        """Use the default size or reject a non-positive or non-integer size."""
         value = request.query_params.get(self.page_size_query_param)
         if value in (None, ''):
             return self.page_size

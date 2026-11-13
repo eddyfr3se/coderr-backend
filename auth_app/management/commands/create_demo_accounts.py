@@ -7,16 +7,19 @@ from auth_app.models import UserProfile
 
 
 class Command(BaseCommand):
+    """Create fictional guest accounts for local development."""
     help = 'Create the two fictional accounts for local frontend guest login.'
 
     @transaction.atomic
     def handle(self, *args, **options):
+        """Create demo accounts only when debug mode is enabled."""
         if not settings.DEBUG:
             raise CommandError('Demo accounts require DJANGO_DEBUG=True.')
         self.create_account('coderr_demo_customer', 'customer')
         self.create_account('coderr_demo_business', 'business')
 
     def create_account(self, username, role):
+        """Create a demo user and profile without changing existing users."""
         user, created = get_user_model().objects.get_or_create(
             username=username, defaults={'email': f'{username}@coderr.example'},
         )

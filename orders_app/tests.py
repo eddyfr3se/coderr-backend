@@ -10,7 +10,9 @@ from .models import Order
 
 
 class OrderModelTests(TestCase):
+    """Test order model."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.customer = get_user_model().objects.create_user(username='order_customer')
         self.business = get_user_model().objects.create_user(username='order_business')
         self.offer = Offer.objects.create(user=self.business, title='Website')
@@ -21,6 +23,7 @@ class OrderModelTests(TestCase):
         )
 
     def make_order(self):
+        """Create an order with the requested test values."""
         return Order.objects.create(
             customer_user=self.customer, business_user=self.business,
             title=self.package.title, revisions=self.package.revisions,
@@ -30,6 +33,7 @@ class OrderModelTests(TestCase):
         )
 
     def test_default_status_timestamps_and_user_relations(self):
+        """Verify that default status timestamps and user relations."""
         order = self.make_order()
         order.full_clean()
         self.assertEqual(order.status, 'in_progress')
@@ -40,6 +44,7 @@ class OrderModelTests(TestCase):
         self.assertEqual(str(order), 'Basic Website')
 
     def test_stored_package_data_survives_source_changes(self):
+        """Verify that stored package data survives source changes."""
         order = self.make_order()
         self.package.title = 'Changed package'
         self.package.price = Decimal('220.00')
@@ -51,6 +56,7 @@ class OrderModelTests(TestCase):
         self.assertEqual(order.features, ['Startseite'])
 
     def test_deleting_offer_does_not_delete_order(self):
+        """Verify that deleting offer does not delete order."""
         order = self.make_order()
         self.offer.delete()
         order.refresh_from_db()
@@ -59,6 +65,7 @@ class OrderModelTests(TestCase):
         self.assertEqual(order.business_user, self.business)
 
     def test_invalid_values_fail_model_validation(self):
+        """Verify that invalid values fail model validation."""
         for field, value in (
             ('price', -1), ('delivery_time_in_days', 0), ('revisions', -2),
             ('offer_type', 'unknown'), ('status', 'unknown'),
@@ -71,6 +78,7 @@ class OrderModelTests(TestCase):
                 self.assertIn(field, error.exception.message_dict)
 
     def test_unlimited_revisions_and_documented_statuses_are_valid(self):
+        """Verify that unlimited revisions and documented statuses are valid."""
         order = self.make_order()
         order.revisions = -1
         for status in ('in_progress', 'completed', 'cancelled'):
@@ -79,6 +87,7 @@ class OrderModelTests(TestCase):
                 order.full_clean()
 
     def test_feature_defaults_do_not_share_a_list(self):
+        """Verify that feature defaults do not share a list."""
         first = Order()
         second = Order()
         first.features.append('Startseite')

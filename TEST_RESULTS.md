@@ -823,3 +823,27 @@ no issues. The Postman Desktop regression and official Academy tests are pending
 Applied all migrations in an isolated copy using the installed dependencies.
 Created both local guest accounts, reran the setup command to check that it
 left them intact, and verified both logins and the fresh database statistics.
+
+## Feedback corrections – 13 November 2026
+
+- Added English docstrings to handwritten classes, methods and test helpers
+  across all four apps and core. Generated migrations were left unchanged.
+- Set the default timezone to UTC and the DRF timestamp output to
+  `%Y-%m-%dT%H:%M:%SZ`, matching the documented seconds-only UTC examples.
+- All 168 Django tests passed. The two new regression tests check winter and
+  summer conversion, profile reads/updates, customer lists, offers, orders and
+  reviews. Stored timestamp precision remains unchanged.
+- The first Django run exposed a test assuming updates within the same second
+  have different serialized timestamps. The test now advances the mocked clock
+  by one second and verifies the exact stored update time as well.
+- Django system checks passed; no model migrations are required.
+- Postman Desktop: `Coderr Feedback - UTC Dates`, 8 requests, 16 assertions
+  passed, zero failures, skipped tests or execution errors (16:00 local time).
+  Checked profile, customer list, offer list/detail, order creation/list and
+  review list timestamps against the running backend on port 8000.
+- The initial Desktop run reached a pre-existing server using `--noreload` and
+  failed seven timestamp assertions. Restarting that Coderr server loaded the
+  corrected settings; all 16 assertions then passed.
+- Removed only the two disposable customers (IDs 41 and 42), their two orders,
+  profiles and tokens created by these runs. Existing fixtures were preserved.
+- This focused Desktop collection is not the official Academy acceptance suite.

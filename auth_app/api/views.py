@@ -38,6 +38,7 @@ class RegistrationView(APIView):
     authentication_classes = []
 
     def post(self, request):
+        """Validate registration data and return the new account token."""
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -51,6 +52,7 @@ class LoginView(APIView):
     authentication_classes = []
 
     def post(self, request):
+        """Validate credentials and return the account token."""
         serializer = LoginSerializer(
             data=request.data, context={'request': request},
         )
@@ -60,20 +62,24 @@ class LoginView(APIView):
 
 
 class ProfileDetailView(RetrieveUpdateAPIView):
+    """Allow authenticated profile reads and updates by the owner."""
     permission_classes = [IsAuthenticated, IsProfileOwnerOrReadOnly]
     http_method_names = ['get', 'patch', 'head', 'options']
     lookup_field = 'user_id'
     lookup_url_kwarg = 'pk'
 
     def get_queryset(self):
+        """Load profiles and their users in a single query."""
         return UserProfile.objects.select_related('user')
 
     def get_serializer_class(self):
+        """Choose the update serializer for PATCH and detail serializer otherwise."""
         if self.request.method == 'PATCH':
             return ProfileUpdateSerializer
         return ProfileDetailSerializer
 
     def update(self, request, *args, **kwargs):
+        """Apply a partial update and return the complete profile."""
         instance = self.get_object()
         serializer = self.get_serializer(
             instance, data=request.data, partial=True,
@@ -87,24 +93,28 @@ class ProfileDetailView(RetrieveUpdateAPIView):
 
 
 class BusinessProfileListView(ListAPIView):
+    """List business profiles with their related user data."""
     permission_classes = [IsAuthenticated]
     serializer_class = BusinessProfileSerializer
     pagination_class = None
     http_method_names = ['get', 'head', 'options']
 
     def get_queryset(self):
+        """Load business profiles ordered by user identifier."""
         return UserProfile.objects.filter(type='business').select_related(
             'user',
         ).order_by('user_id')
 
 
 class CustomerProfileListView(ListAPIView):
+    """List customer profiles with their related user data."""
     permission_classes = [IsAuthenticated]
     serializer_class = CustomerProfileSerializer
     pagination_class = None
     http_method_names = ['get', 'head', 'options']
 
     def get_queryset(self):
+        """Load customer profiles ordered by user identifier."""
         return UserProfile.objects.filter(type='customer').select_related(
             'user',
         ).order_by('user_id')

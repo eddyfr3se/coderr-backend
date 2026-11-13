@@ -22,6 +22,7 @@ class ProfileUpdateSerializerTests(APITestCase):
     """Check partial changes across the user and profile models."""
 
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.user = get_user_model().objects.create_user(
             username='profile_update_test', email='profile@coderr.example',
             first_name='Alex', last_name='Muster',
@@ -31,6 +32,7 @@ class ProfileUpdateSerializerTests(APITestCase):
         )
 
     def test_partial_update_preserves_omitted_fields(self):
+        """Verify that partial update preserves omitted fields."""
         serializer = ProfileUpdateSerializer(
             self.profile, data={'first_name': 'Mara', 'tel': '+49 030 123'},
             partial=True,
@@ -46,6 +48,7 @@ class ProfileUpdateSerializerTests(APITestCase):
         self.assertEqual(self.profile.type, 'customer')
 
     def test_email_used_by_another_user_is_rejected(self):
+        """Verify that email used by another user is rejected."""
         get_user_model().objects.create_user(
             username='other_profile_test', email='other@coderr.example',
         )
@@ -57,6 +60,7 @@ class ProfileUpdateSerializerTests(APITestCase):
         self.assertIn('email', serializer.errors)
 
     def test_own_email_remains_valid(self):
+        """Verify that own email remains valid."""
         serializer = ProfileUpdateSerializer(
             self.profile, data={'email': self.user.email}, partial=True,
         )
@@ -65,13 +69,16 @@ class ProfileUpdateSerializerTests(APITestCase):
 
 
 class ProfileListSerializerTests(APITestCase):
+    """Test profile list serializer."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.user = get_user_model().objects.create_user(username='list_test')
         self.profile = UserProfile.objects.create(
             user=self.user, type='customer',
         )
 
     def test_business_profile_fields(self):
+        """Verify that business profile fields."""
         self.profile.type = 'business'
         data = BusinessProfileSerializer(self.profile).data
         self.assertEqual(set(data), {
@@ -83,6 +90,7 @@ class ProfileListSerializerTests(APITestCase):
             self.assertEqual(data[field], '')
 
     def test_customer_profile_fields(self):
+        """Verify that customer profile fields."""
         data = CustomerProfileSerializer(self.profile).data
         self.assertEqual(set(data), {
             'user', 'username', 'first_name', 'last_name', 'file',
@@ -94,7 +102,9 @@ class ProfileListSerializerTests(APITestCase):
 
 
 class ProfileListEndpointTests(APITestCase):
+    """Test profile list endpoint."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.users = {}
         self.urls = {}
         for role in ('business', 'customer'):
@@ -104,10 +114,12 @@ class ProfileListEndpointTests(APITestCase):
             self.urls[role] = reverse(f'{role}-profile-list')
 
     def authenticate(self, role):
+        """Attach a test user token to subsequent API requests."""
         token, _ = Token.objects.get_or_create(user=self.users[role])
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 
     def test_anonymous_access_is_rejected(self):
+        """Verify that anonymous access is rejected."""
         for url in self.urls.values():
             with self.subTest(url=url):
                 response = self.client.get(url)
@@ -116,6 +128,7 @@ class ProfileListEndpointTests(APITestCase):
                 )
 
     def test_both_roles_can_read_both_filtered_lists(self):
+        """Verify that both roles can read both filtered lists."""
         for reader in self.users:
             self.authenticate(reader)
             for role, url in self.urls.items():
@@ -130,6 +143,7 @@ class ProfileListEndpointTests(APITestCase):
                     )
 
     def test_empty_lists_are_returned_as_arrays(self):
+        """Verify that empty lists are returned as arrays."""
         self.authenticate('customer')
         UserProfile.objects.all().delete()
         for url in self.urls.values():
@@ -138,6 +152,7 @@ class ProfileListEndpointTests(APITestCase):
             self.assertEqual(response.data, [])
 
     def test_write_methods_are_rejected(self):
+        """Verify that write methods are rejected."""
         self.authenticate('business')
         for url in self.urls.values():
             for method in ('post', 'put', 'patch', 'delete'):
@@ -149,6 +164,7 @@ class ProfileListEndpointTests(APITestCase):
                     )
 
     def test_lists_load_users_without_extra_queries_per_profile(self):
+        """Verify that lists load users without extra queries per profile."""
         self.authenticate('customer')
         for role in self.users:
             user = get_user_model().objects.create_user(username=f'{role}_2')
@@ -161,7 +177,9 @@ class ProfileListEndpointTests(APITestCase):
 
 
 class ProfileEndpointTests(APITestCase):
+    """Test profile endpoint."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.other = get_user_model().objects.create_user(username='other')
         self.owner = get_user_model().objects.create_user(username='owner')
         self.profile = UserProfile.objects.create(
@@ -170,6 +188,7 @@ class ProfileEndpointTests(APITestCase):
         self.url = reverse('profile-detail', kwargs={'pk': self.owner.pk})
 
     def prepare_upload(self):
+        """Prepare a sample image and a temporary media directory."""
         directory = TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         settings = override_settings(MEDIA_ROOT=directory.name)
@@ -183,10 +202,12 @@ class ProfileEndpointTests(APITestCase):
         return SimpleUploadedFile('testbild.gif', content, 'image/gif')
 
     def authenticate(self, user):
+        """Attach a test user token to subsequent API requests."""
         token, _ = Token.objects.get_or_create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 
     def test_anonymous_requests_are_rejected(self):
+        """Verify that anonymous requests are rejected."""
         for method in ('get', 'patch'):
             with self.subTest(method=method):
                 response = getattr(self.client, method)(self.url)
@@ -195,6 +216,7 @@ class ProfileEndpointTests(APITestCase):
                 )
 
     def test_other_user_can_read_profile_by_user_id(self):
+        """Verify that other user can read profile by user id."""
         self.authenticate(self.other)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -203,6 +225,7 @@ class ProfileEndpointTests(APITestCase):
         self.assertNotIn('password', response.data)
 
     def test_owner_can_patch_and_receives_full_profile(self):
+        """Verify that owner can patch and receives full profile."""
         self.authenticate(self.owner)
         response = self.client.patch(
             self.url, {'first_name': 'Mara'}, format='json',
@@ -215,6 +238,7 @@ class ProfileEndpointTests(APITestCase):
         self.assertEqual(self.owner.first_name, 'Mara')
 
     def test_other_user_cannot_patch_profile(self):
+        """Verify that other user cannot patch profile."""
         self.authenticate(self.other)
         response = self.client.patch(self.url, {'location': 'Hamburg'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -222,12 +246,14 @@ class ProfileEndpointTests(APITestCase):
         self.assertEqual(self.profile.location, 'Berlin')
 
     def test_missing_profile_returns_not_found(self):
+        """Verify that missing profile returns not found."""
         self.authenticate(self.owner)
         url = reverse('profile-detail', kwargs={'pk': self.other.pk})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_undocumented_methods_are_rejected(self):
+        """Verify that undocumented methods are rejected."""
         self.authenticate(self.owner)
         for method in ('post', 'put', 'delete'):
             with self.subTest(method=method):
@@ -237,6 +263,7 @@ class ProfileEndpointTests(APITestCase):
                 )
 
     def test_owner_can_upload_file(self):
+        """Verify that owner can upload file."""
         upload = self.prepare_upload()
         expected = upload.read()
         upload.seek(0)
@@ -251,6 +278,7 @@ class ProfileEndpointTests(APITestCase):
         self.assertEqual(self.profile.location, 'Berlin')
 
     def test_other_user_cannot_upload_file(self):
+        """Verify that other user cannot upload file."""
         upload = self.prepare_upload()
         self.authenticate(self.other)
         response = self.client.patch(self.url, {'file': upload})
@@ -259,6 +287,7 @@ class ProfileEndpointTests(APITestCase):
         self.assertFalse(self.profile.file)
 
     def test_empty_file_is_rejected(self):
+        """Verify that empty file is rejected."""
         self.prepare_upload()
         self.authenticate(self.owner)
         upload = SimpleUploadedFile('empty.gif', b'', 'image/gif')

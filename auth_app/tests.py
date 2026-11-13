@@ -14,23 +14,27 @@ class UserProfileTests(APITestCase):
     """Check profile validation, defaults and user relationships."""
 
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.user = get_user_model().objects.create_user(
             username='profile_test',
         )
 
     def test_customer_and_business_are_valid_types(self):
+        """Verify that customer and business are valid types."""
         for user_type in ['customer', 'business']:
             with self.subTest(user_type=user_type):
                 profile = UserProfile(user=self.user, type=user_type)
                 profile.full_clean()
 
     def test_invalid_type_is_rejected_by_model_validation(self):
+        """Verify that invalid type is rejected by model validation."""
         profile = UserProfile(user=self.user, type='unknown')
 
         with self.assertRaises(ValidationError):
             profile.full_clean()
 
     def test_optional_fields_can_remain_empty(self):
+        """Verify that optional fields can remain empty."""
         profile = UserProfile.objects.create(user=self.user, type='customer')
         profile.refresh_from_db()
 
@@ -41,6 +45,7 @@ class UserProfileTests(APITestCase):
         self.assertEqual(str(profile), self.user.username)
 
     def test_duplicate_profile_is_rejected_by_model_validation(self):
+        """Verify that duplicate profile is rejected by model validation."""
         UserProfile.objects.create(user=self.user, type='customer')
         duplicate = UserProfile(user=self.user, type='business')
 
@@ -48,6 +53,7 @@ class UserProfileTests(APITestCase):
             duplicate.full_clean()
 
     def test_deleting_user_also_deletes_profile(self):
+        """Verify that deleting user also deletes profile."""
         profile = UserProfile.objects.create(user=self.user, type='customer')
         profile_id = profile.pk
 
@@ -56,6 +62,7 @@ class UserProfileTests(APITestCase):
         self.assertFalse(UserProfile.objects.filter(pk=profile_id).exists())
 
     def test_deleting_profile_preserves_user(self):
+        """Verify that deleting profile preserves user."""
         profile = UserProfile.objects.create(user=self.user, type='customer')
         user_id = self.user.pk
 
@@ -68,6 +75,7 @@ class AuthenticationTests(APITestCase):
     """Exercise registration and login through their actual API routes."""
 
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.password = 'Local-test-password-53!'
         self.data = {
             'username': 'auth_test_customer',
@@ -78,15 +86,18 @@ class AuthenticationTests(APITestCase):
         }
 
     def register(self, **changes):
+        """Send a registration request with the supplied test values."""
         data = {**self.data, **changes}
         return self.client.post(reverse('registration'), data, format='json')
 
     def login(self, **changes):
+        """Send a login request with the supplied test credentials."""
         data = {'username': self.data['username'], 'password': self.password}
         data.update(changes)
         return self.client.post(reverse('login'), data, format='json')
 
     def assert_auth_response(self, response, expected_status):
+        """Check the status and documented authentication response fields."""
         self.assertEqual(response.status_code, expected_status)
         self.assertEqual(
             set(response.data), {'token', 'username', 'email', 'user_id'},
@@ -95,6 +106,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(token.user_id, response.data['user_id'])
 
     def test_customer_registration_creates_user_profile_and_token(self):
+        """Verify that customer registration creates user profile and token."""
         response = self.register()
 
         self.assert_auth_response(response, status.HTTP_201_CREATED)
@@ -106,6 +118,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(user.email, self.data['email'])
 
     def test_business_registration_creates_business_profile(self):
+        """Verify that business registration creates business profile."""
         response = self.register(type='business')
 
         self.assert_auth_response(response, status.HTTP_201_CREATED)
@@ -113,6 +126,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(user.profile.type, 'business')
 
     def test_mismatched_passwords_do_not_create_account(self):
+        """Verify that mismatched passwords do not create account."""
         response = self.register(repeated_password='different-password')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -120,6 +134,7 @@ class AuthenticationTests(APITestCase):
         self.assertFalse(get_user_model().objects.exists())
 
     def test_duplicate_username_is_rejected(self):
+        """Verify that duplicate username is rejected."""
         self.register()
 
         response = self.register(email='another@coderr.example')
@@ -129,6 +144,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(get_user_model().objects.count(), 1)
 
     def test_duplicate_email_is_rejected_case_insensitively(self):
+        """Verify that duplicate email is rejected case insensitively."""
         self.register()
 
         response = self.register(
@@ -140,6 +156,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(get_user_model().objects.count(), 1)
 
     def test_invalid_role_and_email_are_rejected(self):
+        """Verify that invalid role and email are rejected."""
         for changes in ({'type': 'admin'}, {'email': 'invalid'}):
             with self.subTest(changes=changes):
                 response = self.register(**changes)
@@ -149,6 +166,7 @@ class AuthenticationTests(APITestCase):
         self.assertFalse(get_user_model().objects.exists())
 
     def test_every_registration_field_is_required(self):
+        """Verify that every registration field is required."""
         for field in self.data:
             with self.subTest(field=field):
                 data = self.data.copy()
@@ -162,6 +180,7 @@ class AuthenticationTests(APITestCase):
         self.assertFalse(get_user_model().objects.exists())
 
     def test_login_returns_the_existing_token(self):
+        """Verify that login returns the existing token."""
         registration = self.register()
 
         response = self.login()
@@ -171,6 +190,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(Token.objects.count(), 1)
 
     def test_wrong_password_and_unknown_user_are_rejected(self):
+        """Verify that wrong password and unknown user are rejected."""
         self.register()
         for changes in ({'password': 'wrong'}, {'username': 'missing_user'}):
             with self.subTest(changes=changes):
@@ -180,6 +200,7 @@ class AuthenticationTests(APITestCase):
                 )
 
     def test_inactive_user_cannot_login(self):
+        """Verify that inactive user cannot login."""
         self.register()
         get_user_model().objects.update(is_active=False)
 
@@ -188,6 +209,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_missing_login_fields_are_rejected(self):
+        """Verify that missing login fields are rejected."""
         for data in ({}, {'username': 'someone'}, {'password': self.password}):
             with self.subTest(data=data):
                 response = self.client.post(reverse('login'), data)
@@ -196,6 +218,7 @@ class AuthenticationTests(APITestCase):
                 )
 
     def test_auth_endpoints_do_not_accept_get(self):
+        """Verify that auth endpoints do not accept get."""
         for name in ['registration', 'login']:
             with self.subTest(name=name):
                 response = self.client.get(reverse(name))

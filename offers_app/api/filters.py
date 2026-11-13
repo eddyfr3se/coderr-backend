@@ -5,10 +5,12 @@ from offers_app.models import Offer
 
 
 class IntegerFilter(filters.Filter):
+    """Validate filter values as whole numbers."""
     field_class = forms.IntegerField
 
 
 class OfferFilter(filters.FilterSet):
+    """Filter offers by creator, minimum price and delivery time."""
     creator_id = IntegerFilter(field_name='user_id')
     min_price = filters.NumberFilter(field_name='min_price', lookup_expr='gte')
     max_delivery_time = IntegerFilter(
@@ -16,5 +18,6 @@ class OfferFilter(filters.FilterSet):
     )
 
     class Meta:
+        """Define model fields available as filters."""
         model = Offer
         fields = ('creator_id', 'min_price', 'max_delivery_time')

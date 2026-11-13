@@ -7,7 +7,9 @@ from offers_app.models import Offer, OfferDetail
 
 
 class OfferDeleteAPITests(APITestCase):
+    """Test offer delete api."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.owner = get_user_model().objects.create_user(username='delete_owner')
         self.offer = Offer.objects.create(user=self.owner, title='Design', description='Logo')
         for kind in ('basic', 'standard', 'premium'):
@@ -19,10 +21,12 @@ class OfferDeleteAPITests(APITestCase):
         self.url = reverse('offer-detail', args=[self.offer.pk])
 
     def authenticate(self, user):
+        """Attach a test user token to subsequent API requests."""
         token, _ = Token.objects.get_or_create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 
     def test_owner_deletes_offer_and_packages_only(self):
+        """Verify that owner deletes offer and packages only."""
         other_offer = Offer.objects.create(user=self.owner, title='Other', description='Other')
         self.authenticate(self.owner)
         response = self.client.delete(self.url)
@@ -38,6 +42,7 @@ class OfferDeleteAPITests(APITestCase):
             self.assertEqual(self.client.get(url).status_code, 404)
 
     def test_foreign_user_and_staff_cannot_delete(self):
+        """Verify that foreign user and staff cannot delete."""
         for staff in (False, True):
             user = get_user_model().objects.create_user(
                 username=f'delete_foreign_{staff}', is_staff=staff, is_superuser=staff,
@@ -48,11 +53,13 @@ class OfferDeleteAPITests(APITestCase):
         self.assertEqual(self.offer.details.count(), 3)
 
     def test_anonymous_delete_is_rejected(self):
+        """Verify that anonymous delete is rejected."""
         self.assertEqual(self.client.delete(self.url).status_code, 401)
         self.assertTrue(Offer.objects.filter(pk=self.offer.pk).exists())
         self.assertEqual(self.offer.details.count(), 3)
 
     def test_missing_and_repeated_delete_return_404(self):
+        """Verify that missing and repeated delete return 404."""
         self.authenticate(self.owner)
         missing = reverse('offer-detail', args=[0])
         self.assertEqual(self.client.delete(missing).status_code, 404)

@@ -4,6 +4,7 @@ from django.db import models
 
 
 class Offer(models.Model):
+    """Store an offer owned by a business user."""
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -16,10 +17,12 @@ class Offer(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return the title for display in the admin and shell."""
         return self.title
 
 
 class OfferDetail(models.Model):
+    """Store one pricing package belonging to an offer."""
     OFFER_TYPES = (
         ('basic', 'Basic'),
         ('standard', 'Standard'),
@@ -45,4 +48,5 @@ class OfferDetail(models.Model):
     offer_type = models.CharField(max_length=8, choices=OFFER_TYPES)
 
     def __str__(self):
+        """Return the title for display in the admin and shell."""
         return self.title

@@ -6,6 +6,7 @@ from offers_app.models import OfferDetail
 
 
 class Order(models.Model):
+    """Store the agreed package data independently of later offer changes."""
     STATUS_CHOICES = (
         ('in_progress', 'In progress'),
         ('completed', 'Completed'),
@@ -41,4 +42,5 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        """Return the title for display in the admin and shell."""
         return self.title

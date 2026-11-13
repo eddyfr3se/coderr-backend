@@ -10,6 +10,7 @@ class AdminAccessTests(APITestCase):
     """Check the admin pages before business endpoints are implemented."""
 
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.login_url = reverse('admin:login')
         self.admin_url = reverse('admin:index')
         self.staff_user = get_user_model().objects.create_user(
@@ -17,11 +18,13 @@ class AdminAccessTests(APITestCase):
         )
 
     def test_login_page_is_accessible_without_authentication(self):
+        """Verify that login page is accessible without authentication."""
         response = self.client.get(self.login_url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_anonymous_visitor_is_redirected_to_login(self):
+        """Verify that anonymous visitor is redirected to login."""
         response = self.client.get(self.admin_url)
 
         self.assertRedirects(
@@ -31,6 +34,7 @@ class AdminAccessTests(APITestCase):
         )
 
     def test_staff_user_can_open_admin(self):
+        """Verify that staff user can open admin."""
         self.client.force_login(self.staff_user)
 
         response = self.client.get(self.admin_url)

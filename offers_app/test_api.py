@@ -8,7 +8,9 @@ from offers_app.models import Offer, OfferDetail
 
 
 class OfferCreateAPITests(APITestCase):
+    """Test offer create api."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.url = reverse('offer-list')
         self.business = self.make_user('business', 'business')
         self.customer = self.make_user('customer', 'customer')
@@ -25,15 +27,18 @@ class OfferCreateAPITests(APITestCase):
         }
 
     def make_user(self, username, profile_type):
+        """Create a test user with the requested role."""
         user = get_user_model().objects.create_user(username=username)
         UserProfile.objects.create(user=user, type=profile_type)
         return user
 
     def authenticate(self, user):
+        """Attach a test user token to subsequent API requests."""
         token, _ = Token.objects.get_or_create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 
     def test_business_creates_offer_with_documented_response(self):
+        """Verify that business creates offer with documented response."""
         self.authenticate(self.business)
         response = self.client.post(self.url, self.data, format='json')
         self.assertEqual(response.status_code, 201, response.data)
@@ -50,17 +55,20 @@ class OfferCreateAPITests(APITestCase):
         )
 
     def test_anonymous_request_is_rejected(self):
+        """Verify that anonymous request is rejected."""
         response = self.client.post(self.url, self.data, format='json')
         self.assertEqual(response.status_code, 401)
         self.assertFalse(Offer.objects.exists())
 
     def test_customer_request_is_rejected(self):
+        """Verify that customer request is rejected."""
         self.authenticate(self.customer)
         response = self.client.post(self.url, self.data, format='json')
         self.assertEqual(response.status_code, 403)
         self.assertFalse(Offer.objects.exists())
 
     def test_user_without_profile_is_rejected(self):
+        """Verify that user without profile is rejected."""
         user = get_user_model().objects.create_user(username='without_profile')
         self.authenticate(user)
         response = self.client.post(self.url, self.data, format='json')
@@ -68,6 +76,7 @@ class OfferCreateAPITests(APITestCase):
         self.assertFalse(Offer.objects.exists())
 
     def test_owner_cannot_be_overridden_in_request(self):
+        """Verify that owner cannot be overridden in request."""
         self.authenticate(self.business)
         self.data['user'] = self.customer.pk
         response = self.client.post(self.url, self.data, format='json')
@@ -75,6 +84,7 @@ class OfferCreateAPITests(APITestCase):
         self.assertEqual(Offer.objects.get().user, self.business)
 
     def test_invalid_packages_leave_database_unchanged(self):
+        """Verify that invalid packages leave database unchanged."""
         self.authenticate(self.business)
         for types in (('basic', 'standard'), ('basic', 'basic', 'premium')):
             with self.subTest(types=types):
@@ -88,7 +98,9 @@ class OfferCreateAPITests(APITestCase):
 
 
 class OfferReadAPITests(APITestCase):
+    """Test offer read api."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         owner = get_user_model().objects.create_user(username='read_owner')
         self.offer = Offer.objects.create(user=owner, title='Design', description='Logo')
         self.package = OfferDetail.objects.create(
@@ -103,12 +115,14 @@ class OfferReadAPITests(APITestCase):
         self.package_url = reverse('offer-package-detail', args=[self.package.pk])
 
     def authenticate(self, role):
+        """Attach a test user token to subsequent API requests."""
         user = get_user_model().objects.create_user(username='reader_' + role)
         UserProfile.objects.create(user=user, type=role)
         token = Token.objects.create(user=user)
         self.client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
 
     def test_both_roles_read_foreign_offer(self):
+        """Verify that both roles read foreign offer."""
         for role in ('customer', 'business'):
             with self.subTest(role=role):
                 self.authenticate(role)
@@ -121,6 +135,7 @@ class OfferReadAPITests(APITestCase):
                 })
 
     def test_minima_are_calculated_independently_and_links_work(self):
+        """Verify that minima are calculated independently and links work."""
         self.authenticate('customer')
         response = self.client.get(self.url)
         self.assertEqual(float(response.data['min_price']), 50.0)
@@ -134,6 +149,7 @@ class OfferReadAPITests(APITestCase):
             self.assertEqual(package.data['id'], detail['id'])
 
     def test_package_has_documented_fields(self):
+        """Verify that package has documented fields."""
         self.authenticate('business')
         response = self.client.get(self.package_url)
         self.assertEqual(response.status_code, 200)
@@ -145,11 +161,13 @@ class OfferReadAPITests(APITestCase):
         self.assertEqual(response.data['revisions'], -1)
 
     def test_anonymous_reads_are_rejected(self):
+        """Verify that anonymous reads are rejected."""
         for url in (self.url, self.package_url):
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 401)
 
     def test_missing_objects_return_404(self):
+        """Verify that missing objects return 404."""
         self.authenticate('customer')
         for name in ('offer-detail', 'offer-package-detail'):
             with self.subTest(name=name):

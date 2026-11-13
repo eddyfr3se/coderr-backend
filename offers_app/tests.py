@@ -14,7 +14,9 @@ from offers_app.models import Offer, OfferDetail
 
 
 class OfferDetailSerializerTests(SimpleTestCase):
+    """Test offer detail serializer."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.data = {
             'title': 'Basic Design',
             'revisions': 2,
@@ -25,6 +27,7 @@ class OfferDetailSerializerTests(SimpleTestCase):
         }
 
     def test_numeric_and_string_prices_are_accepted(self):
+        """Verify that numeric and string prices are accepted."""
         for value in (100, 100.5, '100.50'):
             with self.subTest(value=value):
                 serializer = OfferDetailSerializer(
@@ -36,12 +39,14 @@ class OfferDetailSerializerTests(SimpleTestCase):
                 )
 
     def test_unlimited_revisions_are_accepted(self):
+        """Verify that unlimited revisions are accepted."""
         serializer = OfferDetailSerializer(
             data={**self.data, 'revisions': -1},
         )
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
     def test_invalid_values_are_rejected(self):
+        """Verify that invalid values are rejected."""
         cases = (
             ('revisions', -2), ('revisions', 1.5),
             ('delivery_time_in_days', 0), ('delivery_time_in_days', 1.5),
@@ -56,6 +61,7 @@ class OfferDetailSerializerTests(SimpleTestCase):
                 self.assertIn(field, serializer.errors)
 
     def test_missing_package_fields_are_rejected(self):
+        """Verify that missing package fields are rejected."""
         for field in self.data:
             with self.subTest(field=field):
                 data = self.data.copy()
@@ -65,6 +71,7 @@ class OfferDetailSerializerTests(SimpleTestCase):
                 self.assertIn(field, serializer.errors)
 
     def test_price_is_rendered_as_json_number(self):
+        """Verify that price is rendered as json number."""
         serializer = OfferDetailSerializer(data=self.data)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         result = JSONRenderer().render(serializer.data)
@@ -72,7 +79,9 @@ class OfferDetailSerializerTests(SimpleTestCase):
 
 
 class OfferCreateSerializerTests(SimpleTestCase):
+    """Test offer create serializer."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         package = {
             'title': 'Design', 'revisions': 2, 'delivery_time_in_days': 5,
             'price': '100.00', 'features': ['Logo Design'],
@@ -87,6 +96,7 @@ class OfferCreateSerializerTests(SimpleTestCase):
         }
 
     def test_three_different_packages_are_accepted_in_any_order(self):
+        """Verify that three different packages are accepted in any order."""
         for details in (self.data['details'], self.data['details'][::-1]):
             with self.subTest(details=details):
                 serializer = OfferCreateSerializer(
@@ -95,6 +105,7 @@ class OfferCreateSerializerTests(SimpleTestCase):
                 self.assertTrue(serializer.is_valid(), serializer.errors)
 
     def test_wrong_package_counts_are_rejected(self):
+        """Verify that wrong package counts are rejected."""
         packages = self.data['details']
         for details in ([], packages[:1], packages[:2], packages + packages[:1]):
             with self.subTest(count=len(details)):
@@ -105,12 +116,14 @@ class OfferCreateSerializerTests(SimpleTestCase):
                 self.assertIn('details', serializer.errors)
 
     def test_duplicate_package_type_is_rejected(self):
+        """Verify that duplicate package type is rejected."""
         self.data['details'][1]['offer_type'] = 'basic'
         serializer = OfferCreateSerializer(data=self.data)
         self.assertFalse(serializer.is_valid())
         self.assertIn('details', serializer.errors)
 
     def test_invalid_nested_package_is_rejected(self):
+        """Verify that invalid nested package is rejected."""
         self.data['details'][1]['delivery_time_in_days'] = 0
         serializer = OfferCreateSerializer(data=self.data)
         self.assertFalse(serializer.is_valid())
@@ -119,19 +132,23 @@ class OfferCreateSerializerTests(SimpleTestCase):
         )
 
     def test_missing_details_are_rejected(self):
+        """Verify that missing details are rejected."""
         self.data.pop('details')
         serializer = OfferCreateSerializer(data=self.data)
         self.assertFalse(serializer.is_valid())
         self.assertIn('details', serializer.errors)
 
     def test_image_can_be_omitted(self):
+        """Verify that image can be omitted."""
         self.data.pop('image')
         serializer = OfferCreateSerializer(data=self.data)
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
 
 class OfferCreationTests(TestCase):
+    """Test offer creation."""
     def setUp(self):
+        """Prepare isolated fixtures for the tests in this class."""
         self.user = get_user_model().objects.create_user(username='offer_owner')
         package = {
             'title': 'Design', 'revisions': -1, 'delivery_time_in_days': 5,
@@ -146,6 +163,7 @@ class OfferCreationTests(TestCase):
         }
 
     def test_offer_and_three_linked_packages_are_saved(self):
+        """Verify that offer and three linked packages are saved."""
         serializer = OfferCreateSerializer(data=self.data)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         offer = serializer.save(user=self.user)
@@ -161,6 +179,7 @@ class OfferCreationTests(TestCase):
         self.assertTrue(all(detail['id'] for detail in serializer.data['details']))
 
     def test_client_cannot_choose_owner(self):
+        """Verify that client cannot choose owner."""
         other = get_user_model().objects.create_user(username='other_owner')
         serializer = OfferCreateSerializer(data={**self.data, 'user': other.pk})
         self.assertTrue(serializer.is_valid(), serializer.errors)
@@ -168,11 +187,13 @@ class OfferCreationTests(TestCase):
         self.assertEqual(offer.user, self.user)
 
     def test_package_failure_rolls_back_entire_offer(self):
+        """Verify that package failure rolls back entire offer."""
         serializer = OfferCreateSerializer(data=self.data)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         create_package = OfferDetail.objects.create
 
         def fail_second_package(**kwargs):
+            """Simulate a package creation failure to test rollback."""
             if OfferDetail.objects.exists():
                 raise IntegrityError('Package creation failed')
             return create_package(**kwargs)
